@@ -7,9 +7,46 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Code released under the Apache 2.0 license.</copyright>
+    <lastBuildDate>Sat, 03 Aug 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://sangjingyu.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>.vimrc</title>
+      <link>https://sangjingyu.github.io/tags/.vimrc/</link>
+      <pubDate>Sat, 03 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://sangjingyu.github.io/tags/.vimrc/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>plugins</title>
+      <link>https://sangjingyu.github.io/tags/plugins/</link>
+      <pubDate>Sat, 03 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://sangjingyu.github.io/tags/plugins/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>spf13-vim</title>
+      <link>https://sangjingyu.github.io/tags/spf13-vim/</link>
+      <pubDate>Sat, 03 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://sangjingyu.github.io/tags/spf13-vim/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>vim</title>
+      <link>https://sangjingyu.github.io/tags/vim/</link>
+      <pubDate>Sat, 03 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://sangjingyu.github.io/tags/vim/</guid>
+      <description></description>
+    </item>
     
   </channel>
 </rss>

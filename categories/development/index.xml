@@ -7,17 +7,18 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Code released under the Apache 2.0 license.</copyright>
+    <lastBuildDate>Sat, 03 Aug 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://sangjingyu.github.io/categories/development/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title></title>
-      <link>https://sangjingyu.github.io/posts/my-first-post/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <title>spf13-vim 3.0 release and new website</title>
+      <link>https://sangjingyu.github.io/posts/spf13-vim-3-0-release-and-new-website/</link>
+      <pubDate>Sat, 03 Aug 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://sangjingyu.github.io/posts/my-first-post/</guid>
-      <description>TESTTESTSETSETSETSET</description>
+      <guid>https://sangjingyu.github.io/posts/spf13-vim-3-0-release-and-new-website/</guid>
+      <description> test?????  </description>
     </item>
     
   </channel>
