@@ -20,3 +20,6 @@
  ul.listUl li:not(:last-child):after {
      content:' ,'
  }
+ .site-heading h1 i {
+     font-size:30px;
+ }
