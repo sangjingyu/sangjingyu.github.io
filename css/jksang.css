@@ -1,0 +1,17 @@
+/*!
+ * Clean Blog v1.0.5 (http://startbootstrap.com/template-overviews/clean-blog)
+ * Copyright 2013-2016 Start Bootstrap
+ * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
+ */
+
+/* 목록 바꾸기 */
+ ul.listUl {
+    list-style: none;
+ }
+
+ ul.listUl li {
+    display:inline-block;
+    border:1px solid black;
+    border-radius: 10px;
+    padding: 3px 8px;
+ }
