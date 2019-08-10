@@ -7,6 +7,7 @@
 /* 목록 바꾸기 */
  ul.listUl {
     list-style: none;
+    padding-left:0px;
  }
 
  ul.listUl li {
@@ -20,6 +21,11 @@
  ul.listUl li:not(:last-child):after {
      content:' ,'
  }
+
+ .site-heading {
+    color: khaki;
+ }
+
  .site-heading h1 i {
      font-size:30px;
  }
