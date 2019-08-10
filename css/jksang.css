@@ -11,7 +11,12 @@
 
  ul.listUl li {
     display:inline-block;
-    border:1px solid black;
-    border-radius: 10px;
+    /* border:1px solid black;
+    border-radius: 10px; */
     padding: 3px 8px;
+    margin-bottom:10px;
+ }
+
+ ul.listUl li:not(:last-child):after {
+     content:' ,'
  }
