@@ -22,10 +22,20 @@
      content:' ,'
  }
 
- .site-heading {
+ /* .site-heading h1 {
     color: khaki;
- }
+ } */
 
  .site-heading h1 i {
      font-size:30px;
  }
+
+ .archive-date {
+     margin:0px;
+     color:gray;
+     font-size:15px;
+ }
+
+ .archive-title {
+     font-size:25px;
+ } 
