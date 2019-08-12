@@ -3,7 +3,31 @@
  * Copyright 2013-2016 Start Bootstrap
  * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
  */
+ @media only screen and (min-width:769px) {
+    .post-preview {
+        width:14em;
+     }
+     .list-image {
+         height:8em;
+     }
+}
 
+ @media only screen and (max-width:769px) {
+    .post-preview {
+        width:20em;
+    }
+    .list-image {
+        height:12em;
+    }
+ }
+
+ .post-preview {
+    text-align: left; display:inline-block; vertical-align:top; padding: 0px 1em; margin-bottom:2em;
+ }
+
+ .list-image {
+     background-image: url('../img/temp-image.jpeg'); margin:0px; background-size:cover
+ }
 /* 목록 바꾸기 */
  ul.listUl {
     list-style: none;
