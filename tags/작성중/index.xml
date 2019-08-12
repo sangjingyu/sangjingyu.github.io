@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>작성중 on Star &amp; Moon</title>
+    <link>https://sangjingyu.github.io/tags/%EC%9E%91%EC%84%B1%EC%A4%91/</link>
+    <description>Recent content in 작성중 on Star &amp; Moon</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Code released under the Apache 2.0 license.</copyright>
+    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://sangjingyu.github.io/tags/%EC%9E%91%EC%84%B1%EC%A4%91/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>포스트 작성 테스트</title>
+      <link>https://sangjingyu.github.io/posts/test1/</link>
+      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://sangjingyu.github.io/posts/test1/</guid>
+      <description> ?????  </description>
+    </item>
+    
+  </channel>
+</rss>

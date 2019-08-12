@@ -30,5 +30,14 @@
       <description> ?????  </description>
     </item>
     
+    <item>
+      <title>포스트 작성하기</title>
+      <link>https://sangjingyu.github.io/posts/test2/</link>
+      <pubDate>Sat, 03 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://sangjingyu.github.io/posts/test2/</guid>
+      <description> 테스트 2  </description>
+    </item>
+    
   </channel>
 </rss>
