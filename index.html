@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✦ Mystic Tarot ✦</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#d4a843;--gold-light:#f0d68a;--gold-dark:#8b6914;
+  --purple-deep:#0a0612;--purple-mid:#1a0f2e;--purple-glow:#6b3fa0;
+  --card-w:100px;--card-h:174px;
+}
+body{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  background:var(--purple-deep);font-family:'Cormorant Garamond',serif;color:var(--gold-light);
+  overflow:hidden;position:relative;
+}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+.star{position:absolute;background:white;border-radius:50%;animation:twinkle var(--dur) ease-in-out infinite alternate}
+@keyframes twinkle{0%{opacity:.1;transform:scale(.5)}100%{opacity:var(--max-o);transform:scale(1)}}
+@keyframes shootingStar{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(180px,100px)}}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse at 20% 15%,rgba(107,63,160,.3) 0%,transparent 45%),
+    radial-gradient(ellipse at 80% 20%,rgba(70,40,140,.2) 0%,transparent 40%),
+    radial-gradient(ellipse at 60% 70%,rgba(42,27,94,.45) 0%,transparent 50%),
+    radial-gradient(ellipse at 50% 50%,rgba(212,168,67,.06) 0%,transparent 40%);
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 15% 80%,rgba(107,63,160,.12) 0%,transparent 40%),
+    radial-gradient(ellipse at 85% 85%,rgba(60,30,120,.1) 0%,transparent 35%);
+}
+.mist{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.mist-layer{
+  position:absolute;width:200%;height:100%;
+  background:repeating-linear-gradient(90deg,transparent 0%,rgba(107,63,160,.04) 10%,rgba(212,168,67,.02) 20%,transparent 30%);
+  animation:mistDrift var(--mist-dur) linear infinite;opacity:var(--mist-o,.5);
+}
+@keyframes mistDrift{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+.container{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;height:100vh;padding:18px 0}
+
+h1{
+  font-family:'Cinzel Decorative',serif;font-size:clamp(1.6rem,3vw,3rem);
+  text-align:center;letter-spacing:.2em;
+  background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 20px rgba(212,168,67,.4));
+  animation:titleGlow 3s ease-in-out infinite alternate;margin-top:8px;
+}
+@keyframes titleGlow{0%{filter:drop-shadow(0 0 10px rgba(212,168,67,.3))}100%{filter:drop-shadow(0 0 30px rgba(212,168,67,.6))}}
+.subtitle{font-style:italic;font-size:clamp(.9rem,1.5vw,1.25rem);opacity:.7;letter-spacing:.12em;margin:6px 0;text-align:center}
+
+.selection-info{text-align:center;font-family:'Cinzel Decorative',serif;font-size:clamp(.85rem,1.5vw,1.1rem);letter-spacing:.1em;display:flex;flex-direction:column;align-items:center;gap:8px;margin:8px 0}
+.selection-dots{display:flex;gap:18px}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--gold);transition:all .4s ease}
+.dot.filled{background:var(--gold);box-shadow:0 0 14px rgba(212,168,67,.6);animation:dotPop .5s ease}
+@keyframes dotPop{0%{transform:scale(1)}50%{transform:scale(1.6)}100%{transform:scale(1)}}
+.selection-count{color:var(--gold);text-shadow:0 0 15px rgba(212,168,67,.4);min-height:1.5em}
+
+.card-table{
+  flex:1;width:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:0 20px;
+  background:radial-gradient(ellipse at 50% 60%,rgba(15,30,20,.35) 0%,transparent 65%);
+}
+
+/* ── Casino Deck ── */
+.deck{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10;transition:opacity .4s}
+.deck.hidden{pointer-events:none;opacity:0}
+.deck-card{
+  position:absolute;width:var(--card-w);height:var(--card-h);
+  border-radius:10px;border:1.5px solid rgba(212,168,67,.35);
+  background:linear-gradient(135deg,#1a0f2e,#0d0820,#1a0f2e);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 10px rgba(0,0,0,.6);
+  transition:transform .22s cubic-bezier(.25,.46,.45,.94);
+  transform-origin:center center;
+}
+.deck-card::before{content:'';position:absolute;inset:6px;border:1px solid rgba(212,168,67,.2);border-radius:6px}
+.deck-card .sym{font-size:2rem;color:var(--gold);opacity:.4;text-shadow:0 0 12px rgba(212,168,67,.4)}
+
+.spread-area{position:relative;width:100%;height:100%;opacity:0;pointer-events:none;transition:opacity .5s ease}
+.spread-area.visible{opacity:1;pointer-events:auto}
+
+/* ── Floating Cards ── */
+.tarot-card{
+  position:absolute;width:var(--card-w);height:var(--card-h);
+  cursor:pointer;transform-style:preserve-3d;
+  transition:transform .45s cubic-bezier(.23,1,.32,1),filter .3s ease;
+  animation:cardFloat var(--float-dur,3.5s) ease-in-out var(--float-delay,0s) infinite alternate;
+}
+@keyframes cardFloat{0%{translate:0 0}100%{translate:var(--float-x,0px) var(--float-y,-14px)}}
+.tarot-card::after{
+  content:'';position:absolute;bottom:-20px;left:10%;width:80%;height:20px;
+  background:radial-gradient(ellipse,rgba(107,63,160,.4) 0%,transparent 70%);
+  border-radius:50%;filter:blur(6px);
+  animation:shadowPulse var(--float-dur,3.5s) ease-in-out var(--float-delay,0s) infinite alternate;
+  pointer-events:none;
+}
+@keyframes shadowPulse{0%{opacity:.7;transform:scale(1)}100%{opacity:.2;transform:scale(.65)}}
+.tarot-card:hover:not(.selected):not(.disabled){
+  z-index:999!important;
+  filter:drop-shadow(0 0 24px rgba(212,168,67,.8)) drop-shadow(0 10px 24px rgba(107,63,160,.35));
+  animation-play-state:paused;
+}
+.tarot-card.selected{
+  z-index:1000!important;
+  filter:drop-shadow(0 0 30px rgba(212,168,67,.95)) drop-shadow(0 0 60px rgba(107,63,160,.5));
+  animation-play-state:paused;
+}
+.tarot-card.disabled{opacity:.15;cursor:default;pointer-events:none;filter:grayscale(.6)}
+
+.card-inner{width:100%;height:100%;position:relative;transition:transform .7s cubic-bezier(.23,1,.32,1);transform-style:preserve-3d}
+.tarot-card.selected .card-inner{transform:rotateY(180deg)}
+.card-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:10px;overflow:hidden;
+  border:1.5px solid rgba(212,168,67,.3);box-shadow:0 0 14px rgba(107,63,160,.12),0 6px 20px rgba(0,0,0,.35)}
+.card-back{
+  background:linear-gradient(135deg,#1a0f2e,#0d0820,#1a0f2e);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 0 24px rgba(107,63,160,.15),inset 0 0 8px rgba(212,168,67,.08);
+}
+.card-back::before{content:'';position:absolute;inset:6px;border:1px solid rgba(212,168,67,.2);border-radius:6px;box-shadow:0 0 10px rgba(212,168,67,.06)}
+.card-back-deco{position:absolute;inset:0;background:repeating-conic-gradient(from 0deg,rgba(212,168,67,.04) 0deg 30deg,transparent 30deg 60deg)}
+.card-back-symbol{font-size:2.2rem;color:var(--gold);opacity:.4;text-shadow:0 0 12px rgba(212,168,67,.4);z-index:1}
+.card-front{transform:rotateY(180deg);background:#1c1235;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0}
+.card-front img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.card-front .rev-overlay{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;border-radius:8px}
+.card-front .dir-tag{font-family:'Cinzel Decorative',serif;font-size:.5rem;letter-spacing:.08em;padding:3px 12px;border-radius:4px 4px 0 0;backdrop-filter:blur(4px)}
+
+.shuffle-btn{
+  font-family:'Cinzel Decorative',serif;font-size:clamp(.95rem,1.5vw,1.2rem);
+  background:transparent;color:var(--gold);border:1.5px solid var(--gold);
+  padding:14px 50px;border-radius:30px;cursor:pointer;letter-spacing:.18em;
+  transition:all .3s ease;z-index:20;margin:10px 0;position:relative;overflow:hidden;
+}
+.shuffle-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(212,168,67,.15),transparent);transform:translateX(-100%);transition:transform .5s}
+.shuffle-btn:hover::before{transform:translateX(100%)}
+.shuffle-btn:hover{background:rgba(212,168,67,.1);box-shadow:0 0 30px rgba(212,168,67,.3)}
+.shuffle-btn.hidden{display:none}
+
+/* ── Results ── */
+.result-overlay{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(10,6,18,.94);backdrop-filter:blur(20px);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:28px;opacity:0;transition:opacity .8s ease;padding:30px;overflow-y:auto;
+}
+.result-overlay.show{display:flex;opacity:1}
+.result-title{
+  font-family:'Cinzel Decorative',serif;font-size:clamp(1.5rem,3vw,2.4rem);
+  background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.2em;text-align:center;
+}
+.result-cards{display:flex;gap:clamp(15px,3vw,45px);flex-wrap:wrap;justify-content:center}
+.result-card{
+  width:clamp(140px,18vw,220px);background:linear-gradient(180deg,#1c1235,#0f0a1f);
+  border:2px solid var(--gold);border-radius:14px;padding:18px 14px 22px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  animation:resultIn .8s cubic-bezier(.23,1,.32,1) both;
+  box-shadow:0 0 35px rgba(212,168,67,.2),0 12px 50px rgba(0,0,0,.5);
+  position:relative;overflow:hidden;
+}
+.result-card::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,rgba(212,168,67,.08),transparent);animation:shimmer 5s linear infinite}
+@keyframes shimmer{to{transform:rotate(360deg)}}
+.result-card:nth-child(1){animation-delay:.2s}
+.result-card:nth-child(2){animation-delay:.5s}
+.result-card:nth-child(3){animation-delay:.8s}
+@keyframes resultIn{from{opacity:0;transform:translateY(50px) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
+.result-card .label{font-family:'Cinzel Decorative',serif;font-size:.75rem;color:var(--gold);opacity:.6;letter-spacing:.15em;z-index:1}
+.result-card .r-img{width:85%;border-radius:8px;z-index:1;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.result-card .name{font-family:'Cinzel Decorative',serif;font-size:.9rem;color:var(--gold-light);letter-spacing:.05em;z-index:1;line-height:1.2}
+.result-card .r-dir{font-family:'Cinzel Decorative',serif;font-size:.65rem;letter-spacing:.1em;z-index:1}
+.result-card .r-suit{font-size:.6rem;z-index:1;font-style:normal;letter-spacing:.08em}
+.result-card .meaning{font-style:italic;font-size:.82rem;color:rgba(240,214,138,.6);line-height:1.35;z-index:1}
+.restart-btn{
+  font-family:'Cinzel Decorative',serif;font-size:1rem;
+  background:transparent;color:var(--gold);border:1.5px solid var(--gold);
+  padding:14px 40px;border-radius:30px;cursor:pointer;letter-spacing:.18em;transition:all .3s ease;margin-top:6px;
+}
+.restart-btn:hover{background:var(--gold);color:var(--purple-deep);box-shadow:0 0 35px rgba(212,168,67,.4)}
+.particle{position:fixed;width:5px;height:5px;border-radius:50%;pointer-events:none;z-index:1500;animation:particleFly 1s ease-out forwards}
+@keyframes particleFly{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0)}}
+
+@media(max-width:1200px){:root{--card-w:80px;--card-h:139px}}
+@media(max-width:800px){:root{--card-w:58px;--card-h:101px}}
+@media(max-width:500px){:root{--card-w:44px;--card-h:76px}}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="mist">
+  <div class="mist-layer" style="--mist-dur:45s;--mist-o:.4;top:10%"></div>
+  <div class="mist-layer" style="--mist-dur:60s;--mist-o:.3;top:50%;animation-direction:reverse"></div>
+  <div class="mist-layer" style="--mist-dur:35s;--mist-o:.25;top:75%"></div>
+</div>
+<div class="container">
+  <h1>✦ Mystic Tarot ✦</h1>
+  <p class="subtitle">운명의 카드 3장을 선택하세요</p>
+  <div class="selection-info">
+    <div class="selection-dots">
+      <div class="dot" id="dot0"></div>
+      <div class="dot" id="dot1"></div>
+      <div class="dot" id="dot2"></div>
+    </div>
+    <div class="selection-count" id="selCount">카드를 셔플하세요</div>
+  </div>
+  <button class="shuffle-btn" id="shuffleBtn" onclick="startShuffle()">✦ 셔플하기 ✦</button>
+  <div class="card-table">
+    <div class="deck" id="deck"></div>
+    <div class="spread-area" id="spreadArea"></div>
+  </div>
+</div>
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-title">✦ 당신의 운명 ✦</div>
+  <div class="result-cards" id="resultCards"></div>
+  <button class="restart-btn" onclick="restart()">다시 뽑기</button>
+</div>
+
+<script>
+const IMG='https://upload.wikimedia.org/wikipedia/commons/';
+const TAROT=[
+{name:"The Fool",img:IMG+"9/90/RWS_Tarot_00_Fool.jpg",meaning:"새로운 시작, 모험",reversed:"무모함, 방향 상실",suit:"Major",num:"0"},
+{name:"The Magician",img:IMG+"d/de/RWS_Tarot_01_Magician.jpg",meaning:"창조력, 의지력",reversed:"속임수, 재능 낭비",suit:"Major",num:"I"},
+{name:"High Priestess",img:IMG+"8/88/RWS_Tarot_02_High_Priestess.jpg",meaning:"직관, 신비",reversed:"비밀, 직관 무시",suit:"Major",num:"II"},
+{name:"The Empress",img:IMG+"d/d2/RWS_Tarot_03_Empress.jpg",meaning:"풍요, 모성",reversed:"의존, 창조력 부족",suit:"Major",num:"III"},
+{name:"The Emperor",img:IMG+"c/c3/RWS_Tarot_04_Emperor.jpg",meaning:"권위, 안정",reversed:"독재, 경직",suit:"Major",num:"IV"},
+{name:"Hierophant",img:IMG+"8/8d/RWS_Tarot_05_Hierophant.jpg",meaning:"전통, 지혜",reversed:"독단, 형식주의",suit:"Major",num:"V"},
+{name:"The Lovers",img:IMG+"3/3a/TheLovers.jpg",meaning:"사랑, 선택",reversed:"불화, 잘못된 선택",suit:"Major",num:"VI"},
+{name:"The Chariot",img:IMG+"9/9b/RWS_Tarot_07_Chariot.jpg",meaning:"승리, 의지",reversed:"방향 상실, 공격성",suit:"Major",num:"VII"},
+{name:"Strength",img:IMG+"f/f5/RWS_Tarot_08_Strength.jpg",meaning:"용기, 인내",reversed:"자기 의심, 나약함",suit:"Major",num:"VIII"},
+{name:"The Hermit",img:IMG+"4/4d/RWS_Tarot_09_Hermit.jpg",meaning:"내면 탐색, 고독",reversed:"고립, 외로움",suit:"Major",num:"IX"},
+{name:"Wheel of Fortune",img:IMG+"3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg",meaning:"운명의 전환",reversed:"불운, 변화 저항",suit:"Major",num:"X"},
+{name:"Justice",img:IMG+"e/e0/RWS_Tarot_11_Justice.jpg",meaning:"정의, 균형",reversed:"불공정, 편견",suit:"Major",num:"XI"},
+{name:"Hanged Man",img:IMG+"2/2b/RWS_Tarot_12_Hanged_Man.jpg",meaning:"희생, 새 시각",reversed:"지연, 무의미한 희생",suit:"Major",num:"XII"},
+{name:"Death",img:IMG+"d/d7/RWS_Tarot_13_Death.jpg",meaning:"변화, 재탄생",reversed:"변화 저항, 정체",suit:"Major",num:"XIII"},
+{name:"Temperance",img:IMG+"f/f8/RWS_Tarot_14_Temperance.jpg",meaning:"절제, 조화",reversed:"과잉, 불균형",suit:"Major",num:"XIV"},
+{name:"The Devil",img:IMG+"5/55/RWS_Tarot_15_Devil.jpg",meaning:"유혹, 속박",reversed:"해방, 구속 탈출",suit:"Major",num:"XV"},
+{name:"The Tower",img:IMG+"5/53/RWS_Tarot_16_Tower.jpg",meaning:"급변, 깨달음",reversed:"변화 회피, 재앙 모면",suit:"Major",num:"XVI"},
+{name:"The Star",img:IMG+"d/db/RWS_Tarot_17_Star.jpg",meaning:"희망, 영감",reversed:"절망, 신뢰 상실",suit:"Major",num:"XVII"},
+{name:"The Moon",img:IMG+"7/7f/RWS_Tarot_18_Moon.jpg",meaning:"환상, 불안",reversed:"혼란 해소, 진실 발견",suit:"Major",num:"XVIII"},
+{name:"The Sun",img:IMG+"1/17/RWS_Tarot_19_Sun.jpg",meaning:"성공, 기쁨",reversed:"낙관 과잉, 지연된 성공",suit:"Major",num:"XIX"},
+{name:"Judgement",img:IMG+"d/dd/RWS_Tarot_20_Judgement.jpg",meaning:"부활, 심판",reversed:"자기 회의, 후회",suit:"Major",num:"XX"},
+{name:"The World",img:IMG+"f/ff/RWS_Tarot_21_World.jpg",meaning:"완성, 성취",reversed:"미완성, 부족감",suit:"Major",num:"XXI"},
+{name:"Ace of Wands",img:IMG+"1/11/Wands01.jpg",meaning:"영감, 새로운 열정",reversed:"지연, 창의력 부족",suit:"Wands",num:"A"},
+{name:"Two of Wands",img:IMG+"0/0f/Wands02.jpg",meaning:"계획, 미래의 결정",reversed:"우유부단, 두려움",suit:"Wands",num:"2"},
+{name:"Three of Wands",img:IMG+"f/ff/Wands03.jpg",meaning:"확장, 기회의 도래",reversed:"장애물, 지연",suit:"Wands",num:"3"},
+{name:"Four of Wands",img:IMG+"a/a4/Wands04.jpg",meaning:"축하, 안정된 기반",reversed:"불안정, 갈등",suit:"Wands",num:"4"},
+{name:"Five of Wands",img:IMG+"9/9d/Wands05.jpg",meaning:"경쟁, 갈등",reversed:"회피, 타협",suit:"Wands",num:"5"},
+{name:"Six of Wands",img:IMG+"3/3b/Wands06.jpg",meaning:"승리, 인정",reversed:"자만, 명성 실추",suit:"Wands",num:"6"},
+{name:"Seven of Wands",img:IMG+"e/e4/Wands07.jpg",meaning:"방어, 도전에 맞섬",reversed:"포기, 압도당함",suit:"Wands",num:"7"},
+{name:"Eight of Wands",img:IMG+"6/6b/Wands08.jpg",meaning:"빠른 진행, 소식",reversed:"지연, 좌절",suit:"Wands",num:"8"},
+{name:"Nine of Wands",img:IMG+"4/4d/Tarot_Nine_of_Wands.jpg",meaning:"인내, 끈기",reversed:"피로, 의심",suit:"Wands",num:"9"},
+{name:"Ten of Wands",img:IMG+"0/0b/Wands10.jpg",meaning:"과중한 짐, 책임",reversed:"번아웃, 위임 필요",suit:"Wands",num:"10"},
+{name:"Page of Wands",img:IMG+"6/6a/Wands11.jpg",meaning:"탐험, 열정적 소식",reversed:"미숙함, 방향 상실",suit:"Wands",num:"Pg"},
+{name:"Knight of Wands",img:IMG+"1/16/Wands12.jpg",meaning:"모험, 대담한 행동",reversed:"성급함, 무모함",suit:"Wands",num:"Kn"},
+{name:"Queen of Wands",img:IMG+"0/0d/Wands13.jpg",meaning:"자신감, 결단력",reversed:"질투, 이기심",suit:"Wands",num:"Q"},
+{name:"King of Wands",img:IMG+"c/ce/Wands14.jpg",meaning:"리더십, 비전",reversed:"독재적, 충동적",suit:"Wands",num:"K"},
+{name:"Ace of Cups",img:IMG+"3/36/Cups01.jpg",meaning:"새로운 사랑, 감정의 시작",reversed:"감정 억압, 공허",suit:"Cups",num:"A"},
+{name:"Two of Cups",img:IMG+"f/f8/Cups02.jpg",meaning:"파트너십, 유대",reversed:"불균형, 단절",suit:"Cups",num:"2"},
+{name:"Three of Cups",img:IMG+"7/7a/Cups03.jpg",meaning:"우정, 축제",reversed:"과잉, 고립",suit:"Cups",num:"3"},
+{name:"Four of Cups",img:IMG+"3/35/Cups04.jpg",meaning:"무관심, 재고",reversed:"새로운 인식, 동기 부여",suit:"Cups",num:"4"},
+{name:"Five of Cups",img:IMG+"d/d7/Cups05.jpg",meaning:"상실, 후회",reversed:"수용, 회복",suit:"Cups",num:"5"},
+{name:"Six of Cups",img:IMG+"1/17/Cups06.jpg",meaning:"향수, 순수한 기쁨",reversed:"과거 집착, 미성숙",suit:"Cups",num:"6"},
+{name:"Seven of Cups",img:IMG+"a/ae/Cups07.jpg",meaning:"환상, 선택의 과다",reversed:"현실 직시, 집중",suit:"Cups",num:"7"},
+{name:"Eight of Cups",img:IMG+"6/60/Cups08.jpg",meaning:"떠남, 더 깊은 의미 추구",reversed:"방황, 두려움으로 머무름",suit:"Cups",num:"8"},
+{name:"Nine of Cups",img:IMG+"2/24/Cups09.jpg",meaning:"만족, 소원 성취",reversed:"탐욕, 불만족",suit:"Cups",num:"9"},
+{name:"Ten of Cups",img:IMG+"8/84/Cups10.jpg",meaning:"가정의 행복, 조화",reversed:"가정 불화, 기대 좌절",suit:"Cups",num:"10"},
+{name:"Page of Cups",img:IMG+"a/ad/Cups11.jpg",meaning:"직관적 메시지, 상상력",reversed:"감정적 미숙, 비현실적",suit:"Cups",num:"Pg"},
+{name:"Knight of Cups",img:IMG+"f/fa/Cups12.jpg",meaning:"로맨스, 제안",reversed:"변덕, 비현실적 기대",suit:"Cups",num:"Kn"},
+{name:"Queen of Cups",img:IMG+"6/62/Cups13.jpg",meaning:"공감, 직관",reversed:"감정 의존, 불안정",suit:"Cups",num:"Q"},
+{name:"King of Cups",img:IMG+"0/04/Cups14.jpg",meaning:"감정적 균형, 관대함",reversed:"감정 조종, 냉담",suit:"Cups",num:"K"},
+{name:"Ace of Swords",img:IMG+"1/1a/Swords01.jpg",meaning:"명확한 사고, 진실",reversed:"혼란, 잘못된 판단",suit:"Swords",num:"A"},
+{name:"Two of Swords",img:IMG+"9/9e/Swords02.jpg",meaning:"결정의 교착, 균형",reversed:"정보 과부하, 선택 회피",suit:"Swords",num:"2"},
+{name:"Three of Swords",img:IMG+"0/02/Swords03.jpg",meaning:"슬픔, 마음의 상처",reversed:"치유의 시작, 용서",suit:"Swords",num:"3"},
+{name:"Four of Swords",img:IMG+"b/bf/Swords04.jpg",meaning:"휴식, 회복",reversed:"소진, 불안",suit:"Swords",num:"4"},
+{name:"Five of Swords",img:IMG+"2/23/Swords05.jpg",meaning:"패배, 갈등의 끝",reversed:"화해, 과거 청산",suit:"Swords",num:"5"},
+{name:"Six of Swords",img:IMG+"2/29/Swords06.jpg",meaning:"전환, 이동",reversed:"정체, 미해결 문제",suit:"Swords",num:"6"},
+{name:"Seven of Swords",img:IMG+"3/34/Swords07.jpg",meaning:"전략, 은밀한 행동",reversed:"양심의 가책, 자백",suit:"Swords",num:"7"},
+{name:"Eight of Swords",img:IMG+"a/a7/Swords08.jpg",meaning:"구속, 자기 제한",reversed:"해방, 새로운 시각",suit:"Swords",num:"8"},
+{name:"Nine of Swords",img:IMG+"2/2f/Swords09.jpg",meaning:"불안, 악몽",reversed:"희망, 걱정 해소",suit:"Swords",num:"9"},
+{name:"Ten of Swords",img:IMG+"d/d4/Swords10.jpg",meaning:"끝, 최하점에서 재기",reversed:"재생, 회복의 조짐",suit:"Swords",num:"10"},
+{name:"Page of Swords",img:IMG+"4/4c/Swords11.jpg",meaning:"호기심, 경계",reversed:"험담, 무계획",suit:"Swords",num:"Pg"},
+{name:"Knight of Swords",img:IMG+"b/b0/Swords12.jpg",meaning:"돌진, 야망",reversed:"무모함, 공격성",suit:"Swords",num:"Kn"},
+{name:"Queen of Swords",img:IMG+"d/d4/Swords13.jpg",meaning:"독립, 명석한 판단",reversed:"냉정함, 편협",suit:"Swords",num:"Q"},
+{name:"King of Swords",img:IMG+"3/33/Swords14.jpg",meaning:"권위, 지적 힘",reversed:"권력 남용, 비정함",suit:"Swords",num:"K"},
+{name:"Ace of Pentacles",img:IMG+"f/fd/Pents01.jpg",meaning:"새로운 재정적 기회",reversed:"기회 놓침, 불안정",suit:"Pentacles",num:"A"},
+{name:"Two of Pentacles",img:IMG+"9/9f/Pents02.jpg",meaning:"균형, 적응",reversed:"불균형, 과부하",suit:"Pentacles",num:"2"},
+{name:"Three of Pentacles",img:IMG+"4/42/Pents03.jpg",meaning:"협력, 장인 정신",reversed:"불협화음, 미숙",suit:"Pentacles",num:"3"},
+{name:"Four of Pentacles",img:IMG+"3/35/Pents04.jpg",meaning:"안정, 소유욕",reversed:"인색, 집착",suit:"Pentacles",num:"4"},
+{name:"Five of Pentacles",img:IMG+"9/96/Pents05.jpg",meaning:"궁핍, 고립",reversed:"회복, 도움의 손길",suit:"Pentacles",num:"5"},
+{name:"Six of Pentacles",img:IMG+"a/a6/Pents06.jpg",meaning:"관대함, 나눔",reversed:"빚, 조건부 도움",suit:"Pentacles",num:"6"},
+{name:"Seven of Pentacles",img:IMG+"6/6a/Pents07.jpg",meaning:"인내, 장기적 투자",reversed:"조급함, 보상 부족",suit:"Pentacles",num:"7"},
+{name:"Eight of Pentacles",img:IMG+"4/49/Pents08.jpg",meaning:"숙련, 근면",reversed:"완벽주의, 지루함",suit:"Pentacles",num:"8"},
+{name:"Nine of Pentacles",img:IMG+"f/f0/Pents09.jpg",meaning:"풍요, 자립",reversed:"과소비, 의존",suit:"Pentacles",num:"9"},
+{name:"Ten of Pentacles",img:IMG+"4/42/Pents10.jpg",meaning:"유산, 가문의 번영",reversed:"재정 손실, 가족 갈등",suit:"Pentacles",num:"10"},
+{name:"Page of Pentacles",img:IMG+"e/ec/Pents11.jpg",meaning:"학습, 새로운 기술",reversed:"무계획, 기회 놓침",suit:"Pentacles",num:"Pg"},
+{name:"Knight of Pentacles",img:IMG+"d/d5/Pents12.jpg",meaning:"성실, 꾸준한 노력",reversed:"정체, 게으름",suit:"Pentacles",num:"Kn"},
+{name:"Queen of Pentacles",img:IMG+"8/88/Pents13.jpg",meaning:"풍요로운 돌봄, 실용",reversed:"자기 방치, 불안정",suit:"Pentacles",num:"Q"},
+{name:"King of Pentacles",img:IMG+"1/1c/Pents14.jpg",meaning:"부, 사업 성공",reversed:"탐욕, 물질 만능주의",suit:"Pentacles",num:"K"},
+];
+
+function suitColor(s){return{Major:'#c9a0dc',Wands:'#e8622c',Cups:'#4a9eed',Swords:'#a0aab4',Pentacles:'#d4a843'}[s]||'#d4a843'}
+function suitLabel(s){return{Major:'메이저 아르카나',Wands:'완드',Cups:'컵',Swords:'검',Pentacles:'펜타클'}[s]||''}
+
+let selected=[],shuffledDeck=[],isShuffling=false;
+
+// ── Stars ──
+function createStars(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<150;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*2.5+.5;
+    const hue=Math.random()>.7?(40+Math.random()*20):(220+Math.random()*60);
+    Object.assign(s.style,{width:sz+'px',height:sz+'px',left:Math.random()*100+'%',top:Math.random()*100+'%',
+      '--dur':(1.5+Math.random()*5)+'s','--max-o':(.2+Math.random()*.8),background:`hsl(${hue},60%,85%)`});
+    c.appendChild(s);
+  }
+  setInterval(()=>{
+    if(Math.random()<.4){
+      const ss=document.createElement('div');
+      Object.assign(ss.style,{position:'absolute',width:'2px',height:'2px',borderRadius:'50%',background:'white',
+        left:Math.random()*80+'%',top:Math.random()*40+'%',
+        boxShadow:'0 0 4px 1px rgba(255,255,255,.8),-20px 0 14px 1px rgba(200,180,255,.3)',
+        animation:`shootingStar ${.6+Math.random()*.6}s linear forwards`,zIndex:0,pointerEvents:'none'});
+      c.appendChild(ss);ss.addEventListener('animationend',()=>ss.remove());
+    }
+  },2500);
+}
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+// ── Build visible deck pile ──
+const DECK_COUNT=30;
+function buildDeck(){
+  const deck=document.getElementById('deck');
+  deck.innerHTML='';deck.classList.remove('hidden');
+  for(let i=0;i<DECK_COUNT;i++){
+    const c=document.createElement('div');c.className='deck-card';
+    c.style.top=(-i*1.0)+'px';c.style.left=(i*.25)+'px';c.style.zIndex=i;
+    c.innerHTML='<div class="sym">✦</div>';deck.appendChild(c);
+  }
+}
+
+function spawnParticles(x,y){
+  const colors=['#d4a843','#f0d68a','#6b3fa0','#fff'];
+  for(let i=0;i<20;i++){
+    const p=document.createElement('div');p.className='particle';
+    const a=Math.random()*Math.PI*2,d=50+Math.random()*100;
+    Object.assign(p.style,{left:x+'px',top:y+'px',background:colors[Math.floor(Math.random()*colors.length)],
+      '--dx':Math.cos(a)*d+'px','--dy':Math.sin(a)*d+'px',
+      width:(2+Math.random()*5)+'px',height:(2+Math.random()*5)+'px'});
+    document.body.appendChild(p);setTimeout(()=>p.remove(),1000);
+  }
+}
+
+// ══════════════════════════════════════════
+//  WASH / MASH SHUFFLE  (스프레드 매시 셔플)
+// ══════════════════════════════════════════
+function startShuffle(){
+  if(isShuffling)return;
+  isShuffling=true;
+  document.getElementById('shuffleBtn').classList.add('hidden');
+  document.getElementById('selCount').textContent='셔플 중...';
+  shuffledDeck=shuffle(TAROT).map(c=>({...c,isReversed:Math.random()<0.4}));
+
+  const cards=[...document.querySelectorAll('.deck-card')];
+  const N=cards.length;
+  const table=document.querySelector('.card-table');
+  const tRect=table.getBoundingClientRect();
+  const cx=tRect.width/2, cy=tRect.height/2;
+  const spreadW=Math.min(tRect.width*0.7, 700);
+  const spreadH=Math.min(tRect.height*0.55, 350);
+
+  // Phase 1: Scatter cards face-down across the "felt"
+  cards.forEach((c,i)=>{
+    const rx=(Math.random()-0.5)*spreadW;
+    const ry=(Math.random()-0.5)*spreadH;
+    const rot=(Math.random()-0.5)*120;
+    c.style.transition=`transform ${0.4+Math.random()*0.3}s cubic-bezier(.25,.46,.45,.94) ${i*0.02}s`;
+    c.style.transform=`translate(${rx}px, ${ry}px) rotate(${rot}deg)`;
+    c.style.zIndex=Math.floor(Math.random()*N);
+  });
+
+  // Phase 2: Circular wash — swirl cards around
+  const washStart=N*0.02*1000+600;
+  setTimeout(()=>doWashCycles(cards,spreadW,spreadH,0),washStart);
+}
+
+function doWashCycles(cards,spreadW,spreadH,cycle){
+  const totalCycles=3;
+  if(cycle>=totalCycles){
+    // Phase 3: Gather cards back into a neat pile
+    setTimeout(()=>gatherDeck(cards),200);
+    return;
+  }
+
+  const N=cards.length;
+  const angleOffset=cycle*120; // different starting angle each cycle
+
+  cards.forEach((c,i)=>{
+    // Circular swirl: each card moves along a partial arc
+    const baseAngle=(angleOffset + (i/N)*360 + Math.random()*40)*Math.PI/180;
+    const radius=60+Math.random()*Math.min(spreadW,spreadH)*0.35;
+    const nx=Math.cos(baseAngle)*radius*(0.5+Math.random()*0.5);
+    const ny=Math.sin(baseAngle)*radius*(0.5+Math.random()*0.5);
+    const rot=(Math.random()-0.5)*160;
+    const dur=0.5+Math.random()*0.4;
+
+    c.style.transition=`transform ${dur}s cubic-bezier(.25,.46,.45,.94) ${i*0.008}s`;
+    c.style.transform=`translate(${nx}px, ${ny}px) rotate(${rot}deg)`;
+    c.style.zIndex=Math.floor(Math.random()*N);
+  });
+
+  setTimeout(()=>doWashCycles(cards,spreadW,spreadH,cycle+1), 700);
+}
+
+function gatherDeck(cards){
+  const N=cards.length;
+
+  // Step 1: Slide cards inward loosely
+  cards.forEach((c,i)=>{
+    const rx=(Math.random()-0.5)*40;
+    const ry=(Math.random()-0.5)*30;
+    const rot=(Math.random()-0.5)*15;
+    c.style.transition=`transform ${0.35+Math.random()*0.2}s cubic-bezier(.25,.46,.45,.94) ${i*0.015}s`;
+    c.style.transform=`translate(${rx}px, ${ry}px) rotate(${rot}deg)`;
+  });
+
+  // Step 2: Snap into neat stack
+  setTimeout(()=>{
+    cards.forEach((c,i)=>{
+      c.style.transition='transform .3s cubic-bezier(.25,.46,.45,.94)';
+      c.style.transform=`translateY(${-i*1.0}px) translateX(${i*.25}px) rotate(0deg)`;
+      c.style.zIndex=i;
+    });
+
+    // Step 3: A final satisfying tap/square-up
+    setTimeout(()=>{
+      cards.forEach(c=>{
+        c.style.transition='transform .12s ease';
+        c.style.transform+=' translateY(-6px)';
+      });
+      setTimeout(()=>{
+        cards.forEach((c,i)=>{
+          c.style.transition='transform .12s ease';
+          c.style.transform=`translateY(${-i*1.0}px) translateX(${i*.25}px) rotate(0deg)`;
+          c.style.zIndex=i;
+        });
+        setTimeout(spreadCards,500);
+      },140);
+    },400);
+  }, N*0.015*1000+500);
+}
+
+// ── Spread cards in fan ──
+function spreadCards(){
+  const deck=document.getElementById('deck');
+  const area=document.getElementById('spreadArea');
+  area.innerHTML='';deck.classList.add('hidden');area.classList.add('visible');
+
+  const count=shuffledDeck.length;
+  const areaRect=area.getBoundingClientRect();
+  const areaW=areaRect.width;const areaH=areaRect.height;
+  const cs=getComputedStyle(document.documentElement);
+  const cardW=parseFloat(cs.getPropertyValue('--card-w'));
+  const cardH=parseFloat(cs.getPropertyValue('--card-h'));
+
+  const totalAngle=120;
+  const startAngle=-totalAngle/2;
+  const angleStep=totalAngle/(count-1);
+  const pivotX=areaW/2;
+  const pivotY=areaH*1.05;
+  const radius=Math.min(areaH*0.82,areaW*0.50);
+
+  shuffledDeck.forEach((card,i)=>{
+    const el=document.createElement('div');
+    el.className='tarot-card';el.dataset.index=i;
+
+    const angleDeg=startAngle+angleStep*i;
+    const angleRad=(angleDeg-90)*Math.PI/180;
+    const cx=pivotX+Math.cos(angleRad)*radius-cardW/2;
+    const cy=pivotY+Math.sin(angleRad)*radius-cardH/2;
+
+    const floatDur=(2.5+Math.random()*3).toFixed(1);
+    const floatDelay=(Math.random()*3).toFixed(1);
+    const floatY=(-8-Math.random()*16).toFixed(0);
+    const floatX=(-4+Math.random()*8).toFixed(0);
+    el.style.setProperty('--float-dur',floatDur+'s');
+    el.style.setProperty('--float-delay',floatDelay+'s');
+    el.style.setProperty('--float-y',floatY+'px');
+    el.style.setProperty('--float-x',floatX+'px');
+
+    el.style.left=pivotX-cardW/2+'px';
+    el.style.top=pivotY-cardH+'px';
+    el.style.transform='rotate(0deg) scale(0.85)';
+    el.style.opacity='0';el.style.zIndex=i;
+    el.style.transformOrigin='center bottom';el.style.transition='none';
+
+    const rev=card.isReversed;
+    el.innerHTML=`
+      <div class="card-inner">
+        <div class="card-face card-back"><div class="card-back-deco"></div><div class="card-back-symbol">✦</div></div>
+        <div class="card-face card-front">
+          <img src="${card.img}" alt="${card.name}" style="${rev?'transform:rotate(180deg)':''}" loading="lazy">
+          <div class="rev-overlay"><div class="dir-tag" style="color:${rev?'#e85454':'#7be854'};background:rgba(10,6,18,.75)">${rev?'Reversed':'Upright'}</div></div>
+        </div>
+      </div>`;
+
+    el.addEventListener('click',()=>selectCard(el,card));
+    el.addEventListener('mouseenter',()=>{
+      if(!el.classList.contains('selected')&&!el.classList.contains('disabled')){
+        el.style.transform=`rotate(${angleDeg}deg) translateY(-30px) scale(1.18)`;el.style.zIndex=999;
+      }
+    });
+    el.addEventListener('mouseleave',()=>{
+      if(!el.classList.contains('selected')&&!el.classList.contains('disabled')){
+        el.style.transform=`rotate(${angleDeg}deg)`;el.style.zIndex=i;
+      }
+    });
+    area.appendChild(el);
+    setTimeout(()=>{
+      el.style.transition='all .7s cubic-bezier(.23,1,.32,1)';
+      el.style.opacity='1';el.style.left=cx+'px';el.style.top=cy+'px';
+      el.style.transform=`rotate(${angleDeg}deg)`;
+    },50+i*22);
+    el._angleDeg=angleDeg;
+  });
+  setTimeout(()=>{document.getElementById('selCount').textContent='과거 · 현재 · 미래';isShuffling=false},50+count*22+600);
+}
+
+function selectCard(el,card){
+  if(selected.length>=3||el.classList.contains('selected'))return;
+  const rect=el.getBoundingClientRect();
+  spawnParticles(rect.left+rect.width/2,rect.top+rect.height/2);
+  el.classList.add('selected');
+  el.style.transform=`rotate(${el._angleDeg}deg) translateY(-45px) scale(1.22)`;
+  el.style.zIndex=1000+selected.length;
+  selected.push({el,card});
+  const labels=['과거','현재','미래'];
+  document.getElementById(`dot${selected.length-1}`).classList.add('filled');
+  if(selected.length<3){
+    document.getElementById('selCount').textContent=`${labels[selected.length]}의 카드를 선택하세요 (${selected.length}/3)`;
+  }else{
+    document.getElementById('selCount').textContent='운명을 읽는 중...';
+    document.querySelectorAll('.tarot-card:not(.selected)').forEach(c=>c.classList.add('disabled'));
+    setTimeout(showResults,1600);
+  }
+}
+
+function showResults(){
+  const overlay=document.getElementById('resultOverlay');
+  const container=document.getElementById('resultCards');
+  container.innerHTML='';
+  const labels=['과거','현재','미래'];
+  selected.forEach((s,i)=>{
+    const d=document.createElement('div');d.className='result-card';
+    const rev=s.card.isReversed;
+    d.innerHTML=`
+      <div class="label">${labels[i]}</div>
+      <img class="r-img" src="${s.card.img}" alt="${s.card.name}" style="${rev?'transform:rotate(180deg)':''}">
+      <div class="name">${s.card.name}</div>
+      <div class="r-suit" style="color:${suitColor(s.card.suit)}99">${suitLabel(s.card.suit)}</div>
+      <div class="r-dir" style="color:${rev?'#e85454':'#7be854'}">${rev?'역방향 (Reversed)':'정방향 (Upright)'}</div>
+      <div class="meaning">${rev?s.card.reversed:s.card.meaning}</div>`;
+    container.appendChild(d);
+  });
+  overlay.classList.add('show');
+}
+
+function restart(){
+  selected=[];isShuffling=false;
+  document.getElementById('resultOverlay').classList.remove('show');
+  document.getElementById('spreadArea').classList.remove('visible');
+  document.getElementById('spreadArea').innerHTML='';
+  [0,1,2].forEach(i=>document.getElementById(`dot${i}`).classList.remove('filled'));
+  document.getElementById('selCount').textContent='카드를 셔플하세요';
+  document.getElementById('shuffleBtn').classList.remove('hidden');
+  buildDeck();
+}
+
+createStars();buildDeck();
+</script>
+</body>
+</html>
