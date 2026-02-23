@@ -336,13 +336,21 @@ function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Mat
 // ── Build visible deck pile ──
 const DECK_COUNT=30;
 function buildDeck(){
-  const deck=document.getElementById('deck');
-  deck.innerHTML='';deck.classList.remove('hidden');
-  for(let i=0;i<DECK_COUNT;i++){
-    const c=document.createElement('div');c.className='deck-card';
-    c.style.top=(-i*1.0)+'px';c.style.left=(i*.25)+'px';c.style.zIndex=i;
-    c.innerHTML='<div class="sym">✦</div>';deck.appendChild(c);
+const deck = document.getElementById('deck');
+  deck.innerHTML = ''; 
+  deck.classList.remove('hidden');
+  
+  const fragment = document.createDocumentFragment(); // 메모리 상에서 작업
+  for (let i = 0; i < DECK_COUNT; i++) {
+    const c = document.createElement('div');
+    c.className = 'deck-card';
+    // GPU 가속을 위해 translate3d 사용
+    c.style.transform = `translate3d(${i * 0.25}px, ${-i * 1.0}px, 0)`;
+    c.style.zIndex = i;
+    c.innerHTML = '<div class="sym">✦</div>';
+    fragment.appendChild(c);
   }
+  deck.appendChild(fragment);
 }
 
 function spawnParticles(x,y){
@@ -361,33 +369,40 @@ function spawnParticles(x,y){
 //  WASH / MASH SHUFFLE  (스프레드 매시 셔플)
 // ══════════════════════════════════════════
 function startShuffle(){
-  if(isShuffling)return;
-  isShuffling=true;
+if (isShuffling) return;
+  isShuffling = true;
   document.getElementById('shuffleBtn').classList.add('hidden');
-  document.getElementById('selCount').textContent='셔플 중...';
-  shuffledDeck=shuffle(TAROT).map(c=>({...c,isReversed:Math.random()<0.4}));
+  document.getElementById('selCount').textContent = '운명을 섞는 중...';
+  
+  shuffledDeck = shuffle(TAROT).map(c => ({ ...c, isReversed: Math.random() < 0.4 }));
 
-  const cards=[...document.querySelectorAll('.deck-card')];
-  const N=cards.length;
-  const table=document.querySelector('.card-table');
-  const tRect=table.getBoundingClientRect();
-  const cx=tRect.width/2, cy=tRect.height/2;
-  const spreadW=Math.min(tRect.width*0.7, 700);
-  const spreadH=Math.min(tRect.height*0.55, 350);
+  const cards = [...document.querySelectorAll('.deck-card')];
+  const table = document.querySelector('.card-table');
+  const tRect = table.getBoundingClientRect();
+  const spreadW = Math.min(tRect.width * 0.6, 500);
+  const spreadH = Math.min(tRect.height * 0.4, 250);
 
-  // Phase 1: Scatter cards face-down across the "felt"
-  cards.forEach((c,i)=>{
-    const rx=(Math.random()-0.5)*spreadW;
-    const ry=(Math.random()-0.5)*spreadH;
-    const rot=(Math.random()-0.5)*120;
-    c.style.transition=`transform ${0.4+Math.random()*0.3}s cubic-bezier(.25,.46,.45,.94) ${i*0.02}s`;
-    c.style.transform=`translate(${rx}px, ${ry}px) rotate(${rot}deg)`;
-    c.style.zIndex=Math.floor(Math.random()*N);
+  // Phase 1: 빠르게 흩뿌리기
+  cards.forEach((c, i) => {
+    const rx = (Math.random() - 0.5) * spreadW;
+    const ry = (Math.random() - 0.5) * spreadH;
+    const rot = (Math.random() - 0.5) * 90;
+    // transition을 한 번만 설정
+    c.style.transition = `transform 0.4s ease-out ${i * 0.01}s`;
+    c.style.transform = `translate3d(${rx}px, ${ry}px, 0) rotate(${rot}deg)`;
   });
 
-  // Phase 2: Circular wash — swirl cards around
-  const washStart=N*0.02*1000+600;
-  setTimeout(()=>doWashCycles(cards,spreadW,spreadH,0),washStart);
+  // Phase 2: 워시 사이클 단축 (모바일에서는 1회만 해도 충분히 역동적임)
+  setTimeout(() => {
+    cards.forEach((c, i) => {
+      const rot = (Math.random() - 0.5) * 180;
+      c.style.transition = `transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)`;
+      c.style.transform = `translate3d(${(Math.random()-0.5)*spreadW}px, ${(Math.random()-0.5)*spreadH}px, 0) rotate(${rot}deg)`;
+    });
+    
+    // Phase 3: 바로 모으기 (불필요한 지연 시간 제거)
+    setTimeout(() => gatherDeck(cards), 600);
+  }, 500);
 }
 
 function doWashCycles(cards,spreadW,spreadH,cycle){
@@ -419,117 +434,75 @@ function doWashCycles(cards,spreadW,spreadH,cycle){
 }
 
 function gatherDeck(cards){
-  const N=cards.length;
-
-  // Step 1: Slide cards inward loosely
-  cards.forEach((c,i)=>{
-    const rx=(Math.random()-0.5)*40;
-    const ry=(Math.random()-0.5)*30;
-    const rot=(Math.random()-0.5)*15;
-    c.style.transition=`transform ${0.35+Math.random()*0.2}s cubic-bezier(.25,.46,.45,.94) ${i*0.015}s`;
-    c.style.transform=`translate(${rx}px, ${ry}px) rotate(${rot}deg)`;
+const N = cards.length;
+  cards.forEach((c, i) => {
+    c.style.transition = `transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${i * 0.01}s`;
+    c.style.transform = `translate3d(${i * 0.25}px, ${-i * 1.0}px, 0) rotate(0deg)`;
+    c.style.zIndex = i;
   });
 
-  // Step 2: Snap into neat stack
-  setTimeout(()=>{
-    cards.forEach((c,i)=>{
-      c.style.transition='transform .3s cubic-bezier(.25,.46,.45,.94)';
-      c.style.transform=`translateY(${-i*1.0}px) translateX(${i*.25}px) rotate(0deg)`;
-      c.style.zIndex=i;
-    });
-
-    // Step 3: A final satisfying tap/square-up
-    setTimeout(()=>{
-      cards.forEach(c=>{
-        c.style.transition='transform .12s ease';
-        c.style.transform+=' translateY(-6px)';
-      });
-      setTimeout(()=>{
-        cards.forEach((c,i)=>{
-          c.style.transition='transform .12s ease';
-          c.style.transform=`translateY(${-i*1.0}px) translateX(${i*.25}px) rotate(0deg)`;
-          c.style.zIndex=i;
-        });
-        setTimeout(spreadCards,500);
-      },140);
-    },400);
-  }, N*0.015*1000+500);
+  // 스프레드 실행 (지연 시간 최적화)
+  setTimeout(spreadCards, N * 0.01 * 1000 + 500);
 }
 
 // ── Spread cards in fan ──
 function spreadCards(){
-  const deck=document.getElementById('deck');
-  const area=document.getElementById('spreadArea');
-  area.innerHTML='';deck.classList.add('hidden');area.classList.add('visible');
+const deck = document.getElementById('deck');
+  const area = document.getElementById('spreadArea');
+  area.innerHTML = '';
+  deck.classList.add('hidden');
+  area.classList.add('visible');
 
-  const count=shuffledDeck.length;
-  const areaRect=area.getBoundingClientRect();
-  const areaW=areaRect.width;const areaH=areaRect.height;
-  const cs=getComputedStyle(document.documentElement);
-  const cardW=parseFloat(cs.getPropertyValue('--card-w'));
-  const cardH=parseFloat(cs.getPropertyValue('--card-h'));
+  const count = shuffledDeck.length;
+  const areaRect = area.getBoundingClientRect();
+  const pivotX = areaRect.width / 2;
+  const pivotY = areaRect.height * 1.05;
+  const radius = Math.min(areaRect.height * 0.8, areaRect.width * 0.5);
 
-  const totalAngle=120;
-  const startAngle=-totalAngle/2;
-  const angleStep=totalAngle/(count-1);
-  const pivotX=areaW/2;
-  const pivotY=areaH*1.05;
-  const radius=Math.min(areaH*0.82,areaW*0.50);
+  const fragment = document.createDocumentFragment();
+  
+  shuffledDeck.forEach((card, i) => {
+    const el = document.createElement('div');
+    el.className = 'tarot-card';
+    
+    // 회전 각도 계산 최적화
+    const angleDeg = -60 + (120 / (count - 1)) * i;
+    const angleRad = (angleDeg - 90) * Math.PI / 180;
+    const cx = pivotX + Math.cos(angleRad) * radius - (window.innerWidth < 500 ? 22 : 40); // 카드 너비 절반
+    const cy = pivotY + Math.sin(angleRad) * radius - (window.innerWidth < 500 ? 38 : 70); // 카드 높이 절반
 
-  shuffledDeck.forEach((card,i)=>{
-    const el=document.createElement('div');
-    el.className='tarot-card';el.dataset.index=i;
+    el.style.left = `${cx}px`;
+    el.style.top = `${cy}px`;
+    el.style.transform = `rotate(${angleDeg}deg) scale(0.9)`;
+    el.style.opacity = '0';
+    el._angleDeg = angleDeg;
 
-    const angleDeg=startAngle+angleStep*i;
-    const angleRad=(angleDeg-90)*Math.PI/180;
-    const cx=pivotX+Math.cos(angleRad)*radius-cardW/2;
-    const cy=pivotY+Math.sin(angleRad)*radius-cardH/2;
-
-    const floatDur=(2.5+Math.random()*3).toFixed(1);
-    const floatDelay=(Math.random()*3).toFixed(1);
-    const floatY=(-8-Math.random()*16).toFixed(0);
-    const floatX=(-4+Math.random()*8).toFixed(0);
-    el.style.setProperty('--float-dur',floatDur+'s');
-    el.style.setProperty('--float-delay',floatDelay+'s');
-    el.style.setProperty('--float-y',floatY+'px');
-    el.style.setProperty('--float-x',floatX+'px');
-
-    el.style.left=pivotX-cardW/2+'px';
-    el.style.top=pivotY-cardH+'px';
-    el.style.transform='rotate(0deg) scale(0.85)';
-    el.style.opacity='0';el.style.zIndex=i;
-    el.style.transformOrigin='center bottom';el.style.transition='none';
-
-    const rev=card.isReversed;
-    el.innerHTML=`
+    // 내부 HTML 구조는 유지하되 transform-origin 등 최적화 속성 적용
+    const rev = card.isReversed;
+    el.innerHTML = `
       <div class="card-inner">
-        <div class="card-face card-back"><div class="card-back-deco"></div><div class="card-back-symbol">✦</div></div>
+        <div class="card-face card-back"><div class="card-back-symbol">✦</div></div>
         <div class="card-face card-front">
           <img src="${card.img}" alt="${card.name}" style="${rev?'transform:rotate(180deg)':''}" loading="lazy">
-          <div class="rev-overlay"><div class="dir-tag" style="color:${rev?'#e85454':'#7be854'};background:rgba(10,6,18,.75)">${rev?'Reversed':'Upright'}</div></div>
         </div>
       </div>`;
 
-    el.addEventListener('click',()=>selectCard(el,card));
-    el.addEventListener('mouseenter',()=>{
-      if(!el.classList.contains('selected')&&!el.classList.contains('disabled')){
-        el.style.transform=`rotate(${angleDeg}deg) translateY(-30px) scale(1.18)`;el.style.zIndex=999;
-      }
-    });
-    el.addEventListener('mouseleave',()=>{
-      if(!el.classList.contains('selected')&&!el.classList.contains('disabled')){
-        el.style.transform=`rotate(${angleDeg}deg)`;el.style.zIndex=i;
-      }
-    });
-    area.appendChild(el);
-    setTimeout(()=>{
-      el.style.transition='all .7s cubic-bezier(.23,1,.32,1)';
-      el.style.opacity='1';el.style.left=cx+'px';el.style.top=cy+'px';
-      el.style.transform=`rotate(${angleDeg}deg)`;
-    },50+i*22);
-    el._angleDeg=angleDeg;
+    el.addEventListener('click', () => selectCard(el, card));
+    fragment.appendChild(el);
+    
+    // 순차적 등장 애니메이션
+    setTimeout(() => {
+      el.style.transition = 'opacity 0.3s ease, transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)';
+      el.style.opacity = '1';
+      el.style.transform = `rotate(${angleDeg}deg) scale(1)`;
+    }, i * 15); 
   });
-  setTimeout(()=>{document.getElementById('selCount').textContent='과거 · 현재 · 미래';isShuffling=false},50+count*22+600);
+  
+  area.appendChild(fragment);
+  setTimeout(() => {
+    document.getElementById('selCount').textContent = '운명의 카드 3장을 선택하세요';
+    isShuffling = false;
+  }, count * 15 + 400);
 }
 
 function selectCard(el,card){
