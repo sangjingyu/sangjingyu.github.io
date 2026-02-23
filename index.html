@@ -122,7 +122,7 @@ const D=[
 {id:'m3',n:'The Empress',img:W+'d/d2/RWS_Tarot_03_Empress.jpg',t:'major',m:'풍요, 모성, 자연의 축복',r:'의존, 창조력 부족'},
 {id:'m4',n:'The Emperor',img:W+'c/c3/RWS_Tarot_04_Emperor.jpg',t:'major',m:'권위, 안정, 구조와 질서',r:'독재, 경직, 통제'},
 {id:'m5',n:'Hierophant',img:W+'8/8d/RWS_Tarot_05_Hierophant.jpg',t:'major',m:'전통, 지혜, 영적 인도',r:'독단, 형식주의'},
-{id:'m6',n:'The Lovers',img:W+'3/3a/TheLovers.jpg',t:'major',m:'사랑, 선택, 조화',r:'불화, 잘못된 선택'},
+{id:'m6',n:'The Lovers',img:W+'3/3a/RWS_Tarot_06_Lovers.jpg',t:'major',m:'사랑, 선택, 조화',r:'불화, 잘못된 선택'},
 {id:'m7',n:'The Chariot',img:W+'9/9b/RWS_Tarot_07_Chariot.jpg',t:'major',m:'승리, 의지, 결단력',r:'방향 상실, 공격성'},
 {id:'m8',n:'Strength',img:W+'f/f5/RWS_Tarot_08_Strength.jpg',t:'major',m:'용기, 인내, 내면의 힘',r:'자기 의심, 나약함'},
 {id:'m9',n:'The Hermit',img:W+'4/4d/RWS_Tarot_09_Hermit.jpg',t:'major',m:'내면 탐색, 고독, 깨달음',r:'고립, 외로움'},
@@ -451,7 +451,7 @@ async function callAI(ak, q) {
 
   try {
     // 🌟 모델명을 gemini-1.5-flash로 변경했습니다.
-    const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${ak}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${ak}`;
     
     const res = await fetch(apiUrl, {
       method: 'POST',
