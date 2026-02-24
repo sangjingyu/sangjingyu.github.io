@@ -887,13 +887,15 @@ async function callGeminiAI(ak, q) {
     return `- ${s.pos}: ${s.card.name} (${rv ? '역방향' : '정방향'}) — ${rv ? s.card.reversed : s.card.meaning}`;
   }).join('\n');
 
-  const prompt = `당신은 전문 타로 리더입니다. 라이더-웨이트-스미스 덱을 사용한 ${sp.name}(${sp.nameEn}) 스프레드 리딩을 해석해주세요.
+  const prompt = `You are a professional tarot reader. Please interpret the ${sp.name} (${sp.nameEn}) spread using the Rider-Waite-Smith deck.
 
-${q ? '질문: ' + q + '\n\n' : ''}선택된 카드:
+${q ? 'Question: ' + q + '\n\n' : ''}Selected cards:
 ${ci}
 
-각 카드의 위치별 의미를 상세히 해석하고, 카드들 간의 관계와 전체적인 메시지를 종합해주세요.
-한국어로 답변하되 카드 이름은 영문을 병기해주세요.`;
+Provide a detailed interpretation of each card according to its position in the spread. 
+Then synthesize the relationships between the cards and deliver an overall message.
+
+Respond in Korean, but include the card names in English as well.`;
 
   try {
     const res = await fetch(
