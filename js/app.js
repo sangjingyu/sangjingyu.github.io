@@ -57,21 +57,27 @@ const IDLE_COUNT = 12;
 
 function startIdleAnimation() {
   if (st !== 'idle') return;
+  if (D.length === 0) return; // data not loaded yet
   const w = cv.clientWidth, h = cv.clientHeight;
+
+  // Pick random cards from the deck
+  const picked = shuf(D).slice(0, IDLE_COUNT);
+
   idleCards = [];
   for (let i = 0; i < IDLE_COUNT; i++) {
-    idleCards.push({
+    const ic = {
       idx: i,
       baseAngle: (i / IDLE_COUNT) * Math.PI * 2,
       orbitSpeed: 0.3 + (i % 3) * 0.05,
-      rx: w * (0.2 + (i % 2) * 0.12),  // orbit radius X
-      ry: h * (0.14 + (i % 3) * 0.04),  // orbit radius Y
+      rx: w * (0.2 + (i % 2) * 0.12),
+      ry: h * (0.14 + (i % 3) * 0.04),
       sc: 0.5 + (i % 3) * 0.1,
-      a: 0.15 + (i % 4) * 0.08,
-      depth: i % 3, // 0=far, 1=mid, 2=near
-      hov: false, flip: false, dis: false,
-      x: 0, y: 0, ang: 0, fImg: null
-    });
+      cardData: picked[i],
+      fImg: null // will be loaded async
+    };
+    idleCards.push(ic);
+    // Preload front image
+    loadImg(picked[i].img).then(img => { ic.fImg = img; });
   }
   cCards = [];
 }
@@ -91,32 +97,51 @@ function renderIdleCards(t) {
   sorted.forEach(ic => {
     const angle = t * ic.orbitSpeed + ic.baseAngle;
     const z = Math.sin(angle); // -1 to 1, simulates depth
-    const depthScale = 0.6 + (z + 1) * 0.25; // 0.6 ~ 1.1
-    const depthAlpha = 0.08 + (z + 1) * 0.18; // dim when far
+    const depthScale = 0.6 + (z + 1) * 0.25;
+    const depthAlpha = 0.08 + (z + 1) * 0.18;
 
     const x = centerX + Math.cos(angle) * ic.rx;
     const y = centerY + Math.sin(angle) * ic.ry * 0.5;
-    const cardAng = Math.cos(angle) * 15; // tilt as it orbits
+    const cardAng = Math.cos(angle) * 15;
     const sc = ic.sc * depthScale;
+
+    // Simulate 3D card flip: use cos(angle) as "facing" factor
+    // When cos > 0 card faces us (show front), when < 0 card is away (show back)
+    const facing = Math.cos(angle);
+    const showFront = facing > 0.05 && ic.fImg;
+    // Horizontal scale to simulate perspective flip
+    const flipScaleX = Math.abs(facing) * 0.6 + 0.4; // 0.4~1.0
 
     cx.save();
     cx.globalAlpha = depthAlpha;
     cx.translate(x, y);
     cx.rotate(cardAng * Math.PI / 180);
-    cx.scale(sc, sc);
+    cx.scale(sc * flipScaleX, sc);
 
-    // Shadow scales with depth
+    // Shadow
     const shadowStr = (z + 1) * 0.2;
     cx.shadowColor = `rgba(0,0,0,${shadowStr})`;
     cx.shadowBlur = 8 + (z + 1) * 6;
     cx.shadowOffsetY = 4 + (z + 1) * 4;
 
-    cx.drawImage(backCv, -CW / 2, -CH / 2, CW, CH);
+    if (showFront) {
+      // Draw card face
+      cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.clip();
+      cx.drawImage(ic.fImg, -CW / 2, -CH / 2, CW, CH);
+      // Gold border
+      cx.shadowColor = 'transparent';
+      cx.strokeStyle = `rgba(212,168,67,${0.2 + facing * 0.25})`;
+      cx.lineWidth = 1.5;
+      cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.stroke();
+    } else {
+      // Draw card back
+      cx.drawImage(backCv, -CW / 2, -CH / 2, CW, CH);
+    }
 
-    // Faint gold glow on nearest cards
+    // Extra glow on nearest cards
     if (z > 0.3) {
       cx.shadowColor = 'transparent';
-      cx.strokeStyle = `rgba(212,168,67,${(z - 0.3) * 0.2})`;
+      cx.strokeStyle = `rgba(212,168,67,${(z - 0.3) * 0.15})`;
       cx.lineWidth = 1;
       cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.stroke();
     }
@@ -124,11 +149,10 @@ function renderIdleCards(t) {
     cx.restore();
   });
 
-  // Central glowing symbol
+  // Central glowing aura
   const pulse = Math.sin(t * 1.2) * 0.3 + 0.7;
   cx.save();
   cx.globalAlpha = 0.06 * pulse;
-  cx.fillStyle = 'var(--gold)';
   const grd2 = cx.createRadialGradient(centerX, centerY, 0, centerX, centerY, w * 0.18);
   grd2.addColorStop(0, `rgba(212,168,67,${0.08 * pulse})`);
   grd2.addColorStop(1, 'transparent');
