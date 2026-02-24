@@ -307,33 +307,34 @@ body {
 }
 
 .rcm {
-  width: 68px;
+  width: 220px;
   flex-shrink: 0;
   text-align: center;
 }
 
 .rcm img {
-  width: 56px;
+  width: 200px;
+  height: 330px;
   border-radius: 4px;
   border: 1px solid rgba(212, 168, 67, .3);
   box-shadow: 0 2px 8px rgba(0, 0, 0, .4);
 }
 
 .rcm .p {
-  font-size: .5rem;
+  font-size: 1rem;
   color: var(--text2);
   margin-top: 3px;
 }
 
 .rcm .n {
-  font-size: .52rem;
+  font-size: 1.1rem;
   color: var(--gold-l);
   margin-top: 1px;
   line-height: 1.2;
 }
 
 .rcm .d {
-  font-size: .48rem;
+  font-size: 0.9rem;
   margin-top: 1px;
 }
 
