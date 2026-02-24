@@ -1,0 +1,38 @@
+{
+  "one": {
+    "name": "원 카드",
+    "nameEn": "One Card",
+    "count": 1,
+    "positions": ["현재 메시지"]
+  },
+  "three": {
+    "name": "쓰리 카드",
+    "nameEn": "Three Card",
+    "count": 3,
+    "positions": ["과거", "현재", "미래"]
+  },
+  "celtic": {
+    "name": "켈트 십자가",
+    "nameEn": "Celtic Cross",
+    "count": 10,
+    "positions": ["현재 상황", "도전/장애", "과거의 기초", "최근 과거", "가능한 결과", "가까운 미래", "자기 자신", "환경", "희망/두려움", "최종 결과"]
+  },
+  "tree": {
+    "name": "생명의 나무",
+    "nameEn": "Tree of Life",
+    "count": 10,
+    "positions": ["왕관(케테르)", "지혜(호크마)", "이해(비나)", "자비(헤세드)", "심판(게부라)", "아름다움(티페레트)", "승리(네짜흐)", "영광(호드)", "기초(예소드)", "왕국(말쿠트)"]
+  },
+  "horseshoe": {
+    "name": "말 발굽",
+    "nameEn": "Horseshoe",
+    "count": 7,
+    "positions": ["과거", "현재", "미래", "최선의 행동", "타인의 영향", "장애물", "결과"]
+  },
+  "fullmoon": {
+    "name": "보름달",
+    "nameEn": "Full Moon",
+    "count": 6,
+    "positions": ["현재 에너지", "내면의 욕구", "외부 영향", "무의식", "의식적 인식", "통합/결과"]
+  }
+}
