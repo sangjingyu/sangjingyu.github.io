@@ -46,7 +46,95 @@ async function loadData() {
 function initApp() {
   initSettings();
   resize();
+  startIdleAnimation();
   floatRAF = requestAnimationFrame(floatLoop);
+}
+
+// ═══════ IDLE ANIMATION ═══════
+// Mystical orbiting cards on the canvas before the user shuffles
+let idleCards = [];
+const IDLE_COUNT = 12;
+
+function startIdleAnimation() {
+  if (st !== 'idle') return;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  idleCards = [];
+  for (let i = 0; i < IDLE_COUNT; i++) {
+    idleCards.push({
+      idx: i,
+      baseAngle: (i / IDLE_COUNT) * Math.PI * 2,
+      orbitSpeed: 0.3 + (i % 3) * 0.05,
+      rx: w * (0.2 + (i % 2) * 0.12),  // orbit radius X
+      ry: h * (0.14 + (i % 3) * 0.04),  // orbit radius Y
+      sc: 0.5 + (i % 3) * 0.1,
+      a: 0.15 + (i % 4) * 0.08,
+      depth: i % 3, // 0=far, 1=mid, 2=near
+      hov: false, flip: false, dis: false,
+      x: 0, y: 0, ang: 0, fImg: null
+    });
+  }
+  cCards = [];
+}
+
+function renderIdleCards(t) {
+  if (st !== 'idle' || idleCards.length === 0) return;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  const centerX = w / 2, centerY = h / 2 - 10;
+
+  // Sort by depth for proper layering
+  const sorted = [...idleCards].sort((a, b) => {
+    const az = Math.sin(t * a.orbitSpeed + a.baseAngle);
+    const bz = Math.sin(t * b.orbitSpeed + b.baseAngle);
+    return az - bz;
+  });
+
+  sorted.forEach(ic => {
+    const angle = t * ic.orbitSpeed + ic.baseAngle;
+    const z = Math.sin(angle); // -1 to 1, simulates depth
+    const depthScale = 0.6 + (z + 1) * 0.25; // 0.6 ~ 1.1
+    const depthAlpha = 0.08 + (z + 1) * 0.18; // dim when far
+
+    const x = centerX + Math.cos(angle) * ic.rx;
+    const y = centerY + Math.sin(angle) * ic.ry * 0.5;
+    const cardAng = Math.cos(angle) * 15; // tilt as it orbits
+    const sc = ic.sc * depthScale;
+
+    cx.save();
+    cx.globalAlpha = depthAlpha;
+    cx.translate(x, y);
+    cx.rotate(cardAng * Math.PI / 180);
+    cx.scale(sc, sc);
+
+    // Shadow scales with depth
+    const shadowStr = (z + 1) * 0.2;
+    cx.shadowColor = `rgba(0,0,0,${shadowStr})`;
+    cx.shadowBlur = 8 + (z + 1) * 6;
+    cx.shadowOffsetY = 4 + (z + 1) * 4;
+
+    cx.drawImage(backCv, -CW / 2, -CH / 2, CW, CH);
+
+    // Faint gold glow on nearest cards
+    if (z > 0.3) {
+      cx.shadowColor = 'transparent';
+      cx.strokeStyle = `rgba(212,168,67,${(z - 0.3) * 0.2})`;
+      cx.lineWidth = 1;
+      cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.stroke();
+    }
+
+    cx.restore();
+  });
+
+  // Central glowing symbol
+  const pulse = Math.sin(t * 1.2) * 0.3 + 0.7;
+  cx.save();
+  cx.globalAlpha = 0.06 * pulse;
+  cx.fillStyle = 'var(--gold)';
+  const grd2 = cx.createRadialGradient(centerX, centerY, 0, centerX, centerY, w * 0.18);
+  grd2.addColorStop(0, `rgba(212,168,67,${0.08 * pulse})`);
+  grd2.addColorStop(1, 'transparent');
+  cx.fillStyle = grd2;
+  cx.fillRect(0, 0, w, h);
+  cx.restore();
 }
 
 // ═══════ UTILITY ═══════
@@ -200,6 +288,9 @@ function render() {
   cx.fillStyle = grd;
   cx.fillRect(0, 0, w, h);
 
+  // Idle orbiting cards (before shuffle)
+  renderIdleCards(t);
+
   cCards.forEach(drawCard);
 }
 
@@ -242,6 +333,7 @@ function animCards(cfgs, dur, done) {
 // ═══════ SHUFFLE (MASH STYLE) ═══════
 function startShuffle() {
   st = 'shuf';
+  idleCards = []; // stop idle animation
   document.getElementById('mainBtn').disabled = true;
   document.getElementById('stxt').textContent = '셔플 중...';
   deck = shuf(D.map(c => ({ ...c, isReversed: Math.random() < .5 })));
@@ -658,6 +750,7 @@ function resetTarot() {
   const btn = document.getElementById('mainBtn');
   btn.disabled = false;
   btn.style.display = '';
+  startIdleAnimation();
 }
 
 // ═══════ WINDOW EVENTS ═══════
