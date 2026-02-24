@@ -601,21 +601,21 @@ body {
 
 .clbl .clbl-pos {
   font-family: 'Cinzel', serif;
-  font-size: clamp(.4rem, 1.2vw, .56rem);
+  font-size: clamp(.4rem, 1.2vw, .75rem);
   color: var(--gold);
   letter-spacing: .06em;
   text-shadow: 0 1px 4px rgba(0,0,0,.8);
 }
 
 .clbl .clbl-name {
-  font-size: clamp(.36rem, 1.1vw, .5rem);
+  font-size: clamp(.36rem, 1.1vw, .8rem);
   color: var(--gold-l);
   text-shadow: 0 1px 4px rgba(0,0,0,.8);
   margin-top: 1px;
 }
 
 .clbl .clbl-dir {
-  font-size: clamp(.34rem, 1vw, .46rem);
+  font-size: clamp(.34rem, 1vw, .7rem);
   margin-top: 1px;
   text-shadow: 0 1px 4px rgba(0,0,0,.8);
 }
