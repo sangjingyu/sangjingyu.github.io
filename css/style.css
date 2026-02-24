@@ -299,15 +299,16 @@ body {
 
 .rcrow {
   display: flex;
-  gap: 8px;
+  gap: 16px;
   overflow-x: auto;
-  padding: 6px 0 14px;
-  justify-content: center;
-  flex-wrap: wrap;
+  padding: 10px 8px 18px;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
 }
 
 .rcm {
-  width: 220px;
+  width: 200px;
   flex-shrink: 0;
   text-align: center;
 }
@@ -315,27 +316,28 @@ body {
 .rcm img {
   width: 200px;
   height: 330px;
-  border-radius: 4px;
+  object-fit: cover;
+  border-radius: 6px;
   border: 1px solid rgba(212, 168, 67, .3);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .5);
 }
 
 .rcm .p {
-  font-size: 1rem;
+  font-size: .75rem;
   color: var(--text2);
-  margin-top: 3px;
+  margin-top: 6px;
 }
 
 .rcm .n {
-  font-size: 1.1rem;
+  font-size: .8rem;
   color: var(--gold-l);
-  margin-top: 1px;
-  line-height: 1.2;
+  margin-top: 3px;
+  line-height: 1.3;
 }
 
 .rcm .d {
-  font-size: 0.9rem;
-  margin-top: 1px;
+  font-size: .7rem;
+  margin-top: 3px;
 }
 
 .air {
@@ -547,6 +549,77 @@ body {
   padding: 2px 5px;
   border-radius: 3px;
   white-space: nowrap;
+}
+
+/* ══════ Result Panel (inline in tarot page) ══════ */
+.result-panel {
+  display: none;
+  flex-direction: column;
+  flex: 0 1 42%;
+  min-height: 120px;
+  max-height: 50vh;
+  border-top: 1px solid rgba(212, 168, 67, .15);
+  background: rgba(10, 6, 18, .95);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+}
+
+.result-panel.show {
+  display: flex;
+}
+
+.rp-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 16px 12px;
+}
+
+.rp-footer {
+  flex-shrink: 0;
+  padding: 6px 16px 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  border-top: 1px solid rgba(212, 168, 67, .08);
+}
+
+/* Card labels drawn over canvas */
+.canvas-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.clbl {
+  position: absolute;
+  text-align: center;
+  transform: translate(-50%, 0);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.clbl .clbl-pos {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(.4rem, 1.2vw, .56rem);
+  color: var(--gold);
+  letter-spacing: .06em;
+  text-shadow: 0 1px 4px rgba(0,0,0,.8);
+}
+
+.clbl .clbl-name {
+  font-size: clamp(.36rem, 1.1vw, .5rem);
+  color: var(--gold-l);
+  text-shadow: 0 1px 4px rgba(0,0,0,.8);
+  margin-top: 1px;
+}
+
+.clbl .clbl-dir {
+  font-size: clamp(.34rem, 1vw, .46rem);
+  margin-top: 1px;
+  text-shadow: 0 1px 4px rgba(0,0,0,.8);
 }
 
 /* ══════ Responsive ══════ */

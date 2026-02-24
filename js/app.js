@@ -85,32 +85,31 @@ function startIdleAnimation() {
 function renderIdleCards(t) {
   if (st !== 'idle' || idleCards.length === 0) return;
   const w = cv.clientWidth, h = cv.clientHeight;
-  const centerX = w / 2, centerY = h / 2 - 10;
+  if (w < 10 || h < 10) return; // canvas not visible
+  const centerX = w / 2, centerY = h / 2;
 
-  // Sort by depth for proper layering
-  const sorted = [...idleCards].sort((a, b) => {
-    const az = Math.sin(t * a.orbitSpeed + a.baseAngle);
-    const bz = Math.sin(t * b.orbitSpeed + b.baseAngle);
-    return az - bz;
-  });
-
-  sorted.forEach(ic => {
+  // Compute z for each card and split into behind / in-front of crystal ball
+  const cardsWithZ = idleCards.map(ic => {
     const angle = t * ic.orbitSpeed + ic.baseAngle;
-    const z = Math.sin(angle); // -1 to 1, simulates depth
+    const z = Math.sin(angle);
+    return { ic, angle, z };
+  });
+  cardsWithZ.sort((a, b) => a.z - b.z);
+
+  const behindCards = cardsWithZ.filter(c => c.z <= 0);
+  const frontCards = cardsWithZ.filter(c => c.z > 0);
+
+  // Helper: draw one idle card
+  function drawIdleCard({ ic, angle, z }) {
     const depthScale = 0.6 + (z + 1) * 0.25;
     const depthAlpha = 0.08 + (z + 1) * 0.18;
-
     const x = centerX + Math.cos(angle) * ic.rx;
     const y = centerY + Math.sin(angle) * ic.ry * 0.5;
     const cardAng = Math.cos(angle) * 15;
     const sc = ic.sc * depthScale;
-
-    // Simulate 3D card flip: use cos(angle) as "facing" factor
-    // When cos > 0 card faces us (show front), when < 0 card is away (show back)
     const facing = Math.cos(angle);
     const showFront = facing > 0.05 && ic.fImg;
-    // Horizontal scale to simulate perspective flip
-    const flipScaleX = Math.abs(facing) * 0.6 + 0.4; // 0.4~1.0
+    const flipScaleX = Math.abs(facing) * 0.6 + 0.4;
 
     cx.save();
     cx.globalAlpha = depthAlpha;
@@ -118,42 +117,44 @@ function renderIdleCards(t) {
     cx.rotate(cardAng * Math.PI / 180);
     cx.scale(sc * flipScaleX, sc);
 
-    // Shadow
     const shadowStr = (z + 1) * 0.2;
     cx.shadowColor = `rgba(0,0,0,${shadowStr})`;
     cx.shadowBlur = 8 + (z + 1) * 6;
     cx.shadowOffsetY = 4 + (z + 1) * 4;
 
     if (showFront) {
-      // Draw card face
       cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.clip();
       cx.drawImage(ic.fImg, -CW / 2, -CH / 2, CW, CH);
-      // Gold border
       cx.shadowColor = 'transparent';
       cx.strokeStyle = `rgba(212,168,67,${0.2 + facing * 0.25})`;
       cx.lineWidth = 1.5;
       cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.stroke();
     } else {
-      // Draw card back
       cx.drawImage(backCv, -CW / 2, -CH / 2, CW, CH);
     }
 
-    // Extra glow on nearest cards
     if (z > 0.3) {
       cx.shadowColor = 'transparent';
       cx.strokeStyle = `rgba(212,168,67,${(z - 0.3) * 0.15})`;
       cx.lineWidth = 1;
       cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.stroke();
     }
-
     cx.restore();
-  });
+  }
 
-  // ── Crystal Ball ──
-  const cbR = Math.min(w, h) * 0.13; // ball radius
-  const cbX = centerX, cbY = centerY;
+  // 1) Draw cards BEHIND the crystal ball
+  behindCards.forEach(drawIdleCard);
 
-  // Outer glow aura
+  // 2) Draw crystal ball at the 3D pivot center
+  drawCrystalBall(t, centerX, centerY, w, h);
+
+  // 3) Draw cards IN FRONT of the crystal ball
+  frontCards.forEach(drawIdleCard);
+}
+
+// ═══════ CRYSTAL BALL ═══════
+function drawCrystalBall(t, cbX, cbY, w, h) {
+  const cbR = Math.min(w, h) * 0.13;
   const pulse = Math.sin(t * 1.2) * 0.3 + 0.7;
   cx.save();
   const auraGrd = cx.createRadialGradient(cbX, cbY, cbR * 0.3, cbX, cbY, cbR * 2.5);
@@ -349,12 +350,13 @@ function loadImg(src) {
 function drawCard(c) {
   cx.save();
   const t = floatT;
-  // unique floating phase per card
   const ph = c.idx * 1.7 + c.idx * c.idx * .3;
-  const floatY = Math.sin(t * 1.2 + ph) * 4 + Math.sin(t * 0.7 + ph * 1.3) * 2.5;
-  const floatX = Math.cos(t * 0.8 + ph * .9) * 1.5;
-  const floatAng = Math.sin(t * 0.5 + ph * 1.1) * 0.8;
-  const floatSc = 1 + Math.sin(t * 0.9 + ph) * 0.008;
+  // Gentler floating during reveal
+  const floatMul = (st === 'reveal' || st === 'done') ? 0.35 : 1;
+  const floatY = (Math.sin(t * 1.2 + ph) * 4 + Math.sin(t * 0.7 + ph * 1.3) * 2.5) * floatMul;
+  const floatX = Math.cos(t * 0.8 + ph * .9) * 1.5 * floatMul;
+  const floatAng = Math.sin(t * 0.5 + ph * 1.1) * 0.8 * floatMul;
+  const floatSc = 1 + Math.sin(t * 0.9 + ph) * 0.008 * floatMul;
   // dynamic shadow depth
   const shadowD = 8 + floatY * 0.6;
   const shadowB = 12 + Math.abs(floatY) * 1.2;
@@ -405,6 +407,7 @@ function drawCard(c) {
 
 function render() {
   const w = cv.clientWidth, h = cv.clientHeight;
+  if (w < 10 || h < 10) return; // canvas not visible
   cx.clearRect(0, 0, w, h);
   const t = floatT;
 
@@ -623,46 +626,163 @@ function onDown(e) {
   if (sel.length < sp.count) {
     document.getElementById('stxt').textContent = sp.positions[sel.length] + ' 카드를 선택하세요';
   } else {
-    document.getElementById('stxt').textContent = '운명을 읽는 중...';
-    cCards.forEach(c => { if (!c.flip) { c.dis = true; c.a = .12; } });
+    document.getElementById('stxt').textContent = '';
     unlisten();
     st = 'done';
-    setTimeout(showResult, 1000);
+    setTimeout(revealSelectedCards, 400);
   }
 }
 
-// ═══════ RESULT & AI ═══════
-function showResult() {
-  const sp = SP[curSp];
-  const ov = document.getElementById('rov');
-  const bd = document.getElementById('rovB');
-  document.getElementById('rovT').textContent = '✦ ' + sp.name + ' 해석 ✦';
+// ═══════ REVEAL: fan layout on canvas ═══════
+let revealLayout = null;
 
-  let h = '<div class="rcrow">';
-  sel.forEach(s => {
-    const rv = s.card.isReversed;
-    h += `<div class="rcm">
-      <img src="${s.card.img}" style="${rv ? 'transform:rotate(180deg)' : ''}">
-      <div class="p">${s.pos}</div>
-      <div class="n">${s.card.name}</div>
-      <div class="d" style="color:${rv ? '#e85454' : '#7be854'}">${rv ? '역방향' : '정방향'}</div>
-    </div>`;
+function calcRevealLayout(w, h, count) {
+  // For many cards, use 2 rows
+  const useRows = count > 5;
+  const rows = useRows ? 2 : 1;
+  const perRow = useRows ? Math.ceil(count / 2) : count;
+
+  // Card scale — fit within canvas with margin
+  const hMargin = 16;
+  const vMargin = 8;
+  const labelH = 36; // space for labels below each card
+  const availW = w - hMargin * 2;
+  const availH = h - vMargin * 2;
+
+  // Scale to fit cards horizontally
+  const gapRatio = 0.15; // gap as fraction of card width
+  const scW = availW / (perRow * CW * (1 + gapRatio) - CW * gapRatio);
+  // Scale to fit cards + labels vertically
+  const scH = availH / (rows * (CH + labelH) + (rows - 1) * 8);
+  const sc = Math.max(0.5, Math.min(1.6, Math.min(scW, scH)));
+
+  const cardW = CW * sc;
+  const cardH = CH * sc;
+  const gap = cardW * gapRatio;
+  const rowH = cardH + labelH;
+
+  // Total height of all rows
+  const totalH = rows * rowH + (rows - 1) * 6;
+  const topY = (h - totalH) / 2 + cardH / 2 + vMargin / 2;
+
+  const positions = [];
+  let idx = 0;
+  for (let r = 0; r < rows; r++) {
+    const rowCount = r === 0 ? perRow : count - perRow;
+    if (rowCount <= 0) break;
+    const rowW = rowCount * cardW + (rowCount - 1) * gap;
+    const rowStartX = (w - rowW) / 2 + cardW / 2;
+    const rowY = topY + r * (rowH + 6);
+
+    for (let c = 0; c < rowCount; c++) {
+      // Subtle fan tilt
+      const t = rowCount === 1 ? 0.5 : c / (rowCount - 1);
+      const angDeg = rowCount <= 1 ? 0 : (t - 0.5) * Math.min(rowCount * 3, 15);
+      // Slight arc
+      const arcOffset = Math.pow(t - 0.5, 2) * cardH * 0.06;
+
+      positions.push({
+        x: rowStartX + c * (cardW + gap),
+        y: rowY + arcOffset,
+        ang: angDeg,
+        sc
+      });
+      idx++;
+    }
+  }
+  return { positions, sc, rows };
+}
+
+function revealSelectedCards() {
+  const count = sel.length;
+  const fanCards = sel.map(s => s.cc);
+
+  // 1) Hide header, question, ctrl — show result panel FIRST so canvas resizes
+  document.getElementById('ctrlArea').style.display = 'none';
+  document.querySelector('#pg-tarot .hdr').style.display = 'none';
+  document.querySelector('#pg-tarot .qarea').style.display = 'none';
+
+  const panel = document.getElementById('resultPanel');
+  panel.classList.add('show');
+
+  // Force reflow so canvas gets its new size
+  resize();
+
+  // 2) NOW calculate layout with the actual canvas dimensions
+  const w = cv.clientWidth, h = cv.clientHeight;
+  revealLayout = calcRevealLayout(w, h, count);
+  const { positions } = revealLayout;
+
+  // 3) Animate cards
+  const cfgs = cCards.map(c => {
+    const selIdx = fanCards.indexOf(c);
+    if (selIdx >= 0) {
+      const p = positions[selIdx];
+      return { tg: { x: p.x, y: p.y, ang: p.ang, sc: p.sc, a: 1 }, dl: selIdx * 80 };
+    } else {
+      return { tg: { x: c.x, y: c.y - 20, ang: c.ang || 0, sc: 0.1, a: 0 }, dl: 0 };
+    }
   });
-  h += '</div>';
+
+  animCards(cfgs, 750, () => {
+    st = 'reveal';
+    showCanvasLabels();
+  });
+
+  // 4) Start loading AI result immediately
+  showResultContent();
+}
+
+function showCanvasLabels() {
+  let layer = document.getElementById('canvasLabels');
+  if (layer) layer.remove();
+  if (!revealLayout) return;
+
+  const { positions, sc } = revealLayout;
+  layer = document.createElement('div');
+  layer.id = 'canvasLabels';
+  layer.className = 'canvas-labels';
+  document.getElementById('canvasWrap').appendChild(layer);
+
+  sel.forEach((s, i) => {
+    const p = positions[i];
+    const top = p.y + (CH * sc) / 2 + 2;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'clbl';
+    lbl.style.left = p.x + 'px';
+    lbl.style.top = top + 'px';
+
+    const rv = s.card.isReversed;
+    lbl.innerHTML = `
+      <div class="clbl-pos">${s.pos}</div>
+      <div class="clbl-name">${s.card.name}</div>
+      <div class="clbl-dir" style="color:${rv ? '#e85454' : '#7be854'}">${rv ? '↻ 역방향' : '정방향'}</div>
+    `;
+    layer.appendChild(lbl);
+  });
+}
+
+function showResultContent() {
+  const sp = SP[curSp];
+  const body = document.getElementById('rpBody');
 
   const q = document.getElementById('qInput').value.trim();
   const ak = localStorage.getItem('gemini_api_key');
 
+  let html = `<div style="text-align:center;padding:4px 0 8px">
+    <span style="font-family:'Cinzel',serif;font-size:.85rem;color:var(--gold);letter-spacing:.1em">✦ ${sp.name} 해석 ✦</span>
+  </div>`;
+
   if (!ak) {
-    h += `<div class="aw">⚠️ Gemini API 키가 설정되지 않았습니다.<br>
-      <a href="#" onclick="closeResult();showPage('settings');return false">설정 페이지</a>에서 API 키를 입력해주세요.</div>`;
-    h += buildFallback();
+    html += `<div class="aw">⚠️ Gemini API 키가 설정되지 않았습니다.<br>
+      <a href="#" onclick="closeResultAndReset();showPage('settings');return false">설정 페이지</a>에서 API 키를 입력해주세요.</div>`;
+    html += buildFallback();
   } else {
-    h += '<div class="ail" id="aiL">AI가 타로를 해석하고 있습니다</div>';
+    html += '<div class="ail" id="aiL">AI가 타로를 해석하고 있습니다</div>';
   }
 
-  bd.innerHTML = h;
-  ov.classList.add('show');
+  body.innerHTML = html;
 
   if (ak) callGeminiAI(ak, q);
   saveHistory(q);
@@ -725,12 +845,27 @@ ${ci}
 }
 
 function closeResult() { document.getElementById('rov').classList.remove('show'); }
-function restart() { closeResult(); resetTarot(); showPage('tarot'); }
+function restart() { closeResult(); closeResultPanel(); resetTarot(); showPage('tarot'); }
+
+function closeResultPanel() {
+  document.getElementById('resultPanel').classList.remove('show');
+  document.getElementById('rpBody').innerHTML = '';
+  document.getElementById('ctrlArea').style.display = '';
+  // Restore header & question
+  const hdr = document.querySelector('#pg-tarot .hdr');
+  if (hdr) hdr.style.display = '';
+  const qa = document.querySelector('#pg-tarot .qarea');
+  if (qa) qa.style.display = '';
+  // Remove canvas labels
+  const lbls = document.getElementById('canvasLabels');
+  if (lbls) lbls.remove();
+}
 
 // Also reset when closing result after a completed reading
 function closeResultAndReset() {
   document.getElementById('rov').classList.remove('show');
-  if (st === 'done') resetTarot();
+  closeResultPanel();
+  if (st === 'done' || st === 'reveal') resetTarot();
 }
 
 // ═══════ HISTORY ═══════
@@ -882,6 +1017,8 @@ function resetTarot() {
   unlisten();
   cCards = [];
   sel = [];
+  revealLayout = null;
+  closeResultPanel();
   updateDots();
   document.getElementById('stxt').textContent = '카드를 셔플하세요';
   const btn = document.getElementById('mainBtn');
