@@ -160,58 +160,63 @@ function renderIdleCards(t) {
 function drawCrystalBall(t, cbX, cbY, w, h) {
   const cbR = Math.min(w, h) * 0.13;
   const pulse = Math.sin(t * 1.2) * 0.3 + 0.7;
+
+  // Outer aura — warm gold
   cx.save();
   const auraGrd = cx.createRadialGradient(cbX, cbY, cbR * 0.3, cbX, cbY, cbR * 2.5);
-  auraGrd.addColorStop(0, `rgba(200,50,50,${0.06 * pulse})`);
-  auraGrd.addColorStop(0.5, `rgba(212,168,67,${0.03 * pulse})`);
+  auraGrd.addColorStop(0, `rgba(212,168,67,${0.07 * pulse})`);
+  auraGrd.addColorStop(0.5, `rgba(180,140,50,${0.03 * pulse})`);
   auraGrd.addColorStop(1, 'transparent');
   cx.fillStyle = auraGrd;
   cx.fillRect(0, 0, w, h);
   cx.restore();
 
-  // Ball base / stand
+  // Ball base / stand — dark bronze
   cx.save();
   cx.beginPath();
   cx.ellipse(cbX, cbY + cbR * 0.95, cbR * 0.45, cbR * 0.12, 0, 0, Math.PI * 2);
-  cx.fillStyle = 'rgba(80,50,30,0.5)';
+  cx.fillStyle = 'rgba(90,65,25,0.55)';
   cx.fill();
-  cx.strokeStyle = 'rgba(212,168,67,0.2)';
+  cx.strokeStyle = 'rgba(212,168,67,0.25)';
   cx.lineWidth = 1;
   cx.stroke();
   cx.restore();
 
-  // Ball body — glass sphere
+  // Ball body — glass sphere with gold-tinted interior
   cx.save();
   cx.beginPath();
   cx.arc(cbX, cbY, cbR, 0, Math.PI * 2);
   cx.clip();
 
-  // Dark interior
+  // Dark amber interior
   const ballGrd = cx.createRadialGradient(cbX - cbR * 0.2, cbY - cbR * 0.25, 0, cbX, cbY, cbR);
-  ballGrd.addColorStop(0, 'rgba(50,12,18,0.85)');
-  ballGrd.addColorStop(0.6, 'rgba(30,6,10,0.9)');
-  ballGrd.addColorStop(1, 'rgba(15,2,5,0.95)');
+  ballGrd.addColorStop(0, 'rgba(50,35,10,0.85)');
+  ballGrd.addColorStop(0.6, 'rgba(30,20,5,0.9)');
+  ballGrd.addColorStop(1, 'rgba(15,10,2,0.95)');
   cx.fillStyle = ballGrd;
   cx.fillRect(cbX - cbR, cbY - cbR, cbR * 2, cbR * 2);
 
-  // ── Swirling smoke particles inside ──
+  // ── Swirling smoke particles — gold & amber ──
   for (let i = 0; i < 18; i++) {
     const smokeT = t * (0.4 + i * 0.03) + i * 2.7;
-    // Spiral path
     const spiralR = cbR * (0.15 + (i % 5) * 0.12) * (0.6 + Math.sin(smokeT * 0.5) * 0.4);
     const sx = cbX + Math.cos(smokeT) * spiralR * (0.7 + Math.sin(i * 1.3 + t * 0.2) * 0.3);
     const sy = cbY + Math.sin(smokeT * 0.8 + i) * spiralR * 0.6 - Math.sin(t * 0.6 + i * 0.5) * cbR * 0.15;
     const smokeSize = cbR * (0.08 + Math.sin(smokeT * 1.2 + i * 3) * 0.05);
     const smokeAlpha = 0.06 + Math.sin(smokeT * 0.7 + i * 1.7) * 0.04;
 
-    // Alternate purple and gold smoke wisps
-    const isGold = i % 3 === 0;
     const sGrd = cx.createRadialGradient(sx, sy, 0, sx, sy, smokeSize);
-    if (isGold) {
-      sGrd.addColorStop(0, `rgba(212,168,67,${smokeAlpha * 1.5})`);
+    if (i % 3 === 0) {
+      // Bright gold
+      sGrd.addColorStop(0, `rgba(240,200,80,${smokeAlpha * 1.5})`);
+      sGrd.addColorStop(1, 'transparent');
+    } else if (i % 3 === 1) {
+      // Deep amber
+      sGrd.addColorStop(0, `rgba(180,130,40,${smokeAlpha * 1.3})`);
       sGrd.addColorStop(1, 'transparent');
     } else {
-      sGrd.addColorStop(0, `rgba(200,60,60,${smokeAlpha * 1.2})`);
+      // Warm honey
+      sGrd.addColorStop(0, `rgba(220,170,60,${smokeAlpha * 1.2})`);
       sGrd.addColorStop(1, 'transparent');
     }
     cx.fillStyle = sGrd;
@@ -220,17 +225,17 @@ function drawCrystalBall(t, cbX, cbY, w, h) {
     cx.fill();
   }
 
-  // ── Rising smoke tendrils ──
+  // ── Rising smoke tendrils — golden ──
   for (let i = 0; i < 6; i++) {
     const tendrilT = t * 0.5 + i * 1.05;
-    const risePhase = (tendrilT % 4) / 4; // 0~1 cycle
+    const risePhase = (tendrilT % 4) / 4;
     const tx = cbX + Math.sin(tendrilT * 1.5 + i * 2) * cbR * 0.35;
     const ty = cbY + cbR * 0.3 - risePhase * cbR * 0.8;
     const tSize = cbR * (0.04 + risePhase * 0.08);
     const tAlpha = (1 - risePhase) * 0.1;
 
     const tGrd = cx.createRadialGradient(tx, ty, 0, tx, ty, tSize);
-    tGrd.addColorStop(0, `rgba(220,80,60,${tAlpha})`);
+    tGrd.addColorStop(0, `rgba(230,185,70,${tAlpha})`);
     tGrd.addColorStop(1, 'transparent');
     cx.fillStyle = tGrd;
     cx.beginPath();
@@ -238,42 +243,41 @@ function drawCrystalBall(t, cbX, cbY, w, h) {
     cx.fill();
   }
 
-  // ── Inner mystical glow (pulsing core) ──
+  // ── Inner mystical glow — pulsing gold core ──
   const coreGrd = cx.createRadialGradient(cbX, cbY, 0, cbX, cbY, cbR * 0.5);
-  coreGrd.addColorStop(0, `rgba(220,80,40,${0.05 + pulse * 0.04})`);
-  coreGrd.addColorStop(0.5, `rgba(180,30,30,${0.03 + pulse * 0.02})`);
+  coreGrd.addColorStop(0, `rgba(240,200,80,${0.05 + pulse * 0.04})`);
+  coreGrd.addColorStop(0.5, `rgba(180,130,40,${0.03 + pulse * 0.02})`);
   coreGrd.addColorStop(1, 'transparent');
   cx.fillStyle = coreGrd;
   cx.fillRect(cbX - cbR, cbY - cbR, cbR * 2, cbR * 2);
 
   cx.restore(); // end clip
 
-  // Glass sphere highlight / reflections (on top, outside clip)
+  // Glass sphere highlight / reflections
   cx.save();
-  // Top-left specular highlight
   const hlGrd = cx.createRadialGradient(
     cbX - cbR * 0.3, cbY - cbR * 0.35, 0,
     cbX - cbR * 0.3, cbY - cbR * 0.35, cbR * 0.5
   );
-  hlGrd.addColorStop(0, 'rgba(255,255,255,0.12)');
-  hlGrd.addColorStop(0.5, 'rgba(255,255,255,0.03)');
+  hlGrd.addColorStop(0, 'rgba(255,245,220,0.14)');
+  hlGrd.addColorStop(0.5, 'rgba(255,240,200,0.04)');
   hlGrd.addColorStop(1, 'transparent');
   cx.fillStyle = hlGrd;
   cx.beginPath();
   cx.arc(cbX, cbY, cbR, 0, Math.PI * 2);
   cx.fill();
 
-  // Edge rim light
+  // Edge rim light — warm gold
   cx.beginPath();
-  cx.arc(cbX, cbY, cbR - 0.5, 0, Math.PI * 2);
-  cx.strokeStyle = `rgba(220,100,80,${0.12 + pulse * 0.06})`;
+  cx.arc(cbX, cbY, Math.max(cbR - 0.5, 0.5), 0, Math.PI * 2);
+  cx.strokeStyle = `rgba(220,180,80,${0.14 + pulse * 0.07})`;
   cx.lineWidth = 1.5;
   cx.stroke();
 
-  // Subtle outer ring glow
+  // Outer ring glow — gold
   cx.beginPath();
   cx.arc(cbX, cbY, cbR + 2, 0, Math.PI * 2);
-  cx.strokeStyle = `rgba(212,168,67,${0.06 + pulse * 0.03})`;
+  cx.strokeStyle = `rgba(212,168,67,${0.07 + pulse * 0.04})`;
   cx.lineWidth = 1;
   cx.stroke();
   cx.restore();
