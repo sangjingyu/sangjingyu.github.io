@@ -300,11 +300,9 @@ body {
 .rcrow {
   display: flex;
   gap: 16px;
-  overflow-x: auto;
   padding: 10px 8px 18px;
-  justify-content: flex-start;
-  flex-wrap: nowrap;
-  -webkit-overflow-scrolling: touch;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .rcm {

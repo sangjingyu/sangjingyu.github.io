@@ -53,14 +53,13 @@ function initApp() {
 // ═══════ IDLE ANIMATION ═══════
 // Mystical orbiting cards on the canvas before the user shuffles
 let idleCards = [];
-const IDLE_COUNT = 12;
+const IDLE_COUNT = 18;
 
 function startIdleAnimation() {
   if (st !== 'idle') return;
-  if (D.length === 0) return; // data not loaded yet
+  if (D.length === 0) return;
   const w = cv.clientWidth, h = cv.clientHeight;
 
-  // Pick random cards from the deck
   const picked = shuf(D).slice(0, IDLE_COUNT);
 
   idleCards = [];
@@ -68,15 +67,14 @@ function startIdleAnimation() {
     const ic = {
       idx: i,
       baseAngle: (i / IDLE_COUNT) * Math.PI * 2,
-      orbitSpeed: 0.3 + (i % 3) * 0.05,
-      rx: w * (0.2 + (i % 2) * 0.12),
-      ry: h * (0.14 + (i % 3) * 0.04),
-      sc: 0.5 + (i % 3) * 0.1,
+      orbitSpeed: 0.2 + (i % 4) * 0.03,
+      rx: w * (0.22 + (i % 3) * 0.07),
+      ry: h * (0.14 + (i % 3) * 0.025),
+      sc: 0.55 + (i % 3) * 0.08,
       cardData: picked[i],
-      fImg: null // will be loaded async
+      fImg: null
     };
     idleCards.push(ic);
-    // Preload front image
     loadImg(picked[i].img).then(img => { ic.fImg = img; });
   }
   cCards = [];
@@ -101,15 +99,15 @@ function renderIdleCards(t) {
 
   // Helper: draw one idle card
   function drawIdleCard({ ic, angle, z }) {
-    const depthScale = 0.6 + (z + 1) * 0.25;
-    const depthAlpha = 0.08 + (z + 1) * 0.18;
+    const depthScale = 0.75 + (z + 1) * 0.2;
+    const depthAlpha = 0.2 + (z + 1) * 0.35;
     const x = centerX + Math.cos(angle) * ic.rx;
     const y = centerY + Math.sin(angle) * ic.ry * 0.5;
-    const cardAng = Math.cos(angle) * 15;
+    const cardAng = Math.cos(angle) * 12;
     const sc = ic.sc * depthScale;
     const facing = Math.cos(angle);
     const showFront = facing > 0.05 && ic.fImg;
-    const flipScaleX = Math.abs(facing) * 0.6 + 0.4;
+    const flipScaleX = Math.abs(facing) * 0.55 + 0.45;
 
     cx.save();
     cx.globalAlpha = depthAlpha;
@@ -117,26 +115,32 @@ function renderIdleCards(t) {
     cx.rotate(cardAng * Math.PI / 180);
     cx.scale(sc * flipScaleX, sc);
 
-    const shadowStr = (z + 1) * 0.2;
+    // Enhanced shadow
+    const shadowStr = 0.15 + (z + 1) * 0.2;
     cx.shadowColor = `rgba(0,0,0,${shadowStr})`;
-    cx.shadowBlur = 8 + (z + 1) * 6;
-    cx.shadowOffsetY = 4 + (z + 1) * 4;
+    cx.shadowBlur = 10 + (z + 1) * 8;
+    cx.shadowOffsetY = 5 + (z + 1) * 5;
 
     if (showFront) {
       cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.clip();
+      // Enable image smoothing for clarity
+      cx.imageSmoothingEnabled = true;
+      cx.imageSmoothingQuality = 'high';
       cx.drawImage(ic.fImg, -CW / 2, -CH / 2, CW, CH);
+      // Gold border — stronger on front-facing cards
       cx.shadowColor = 'transparent';
-      cx.strokeStyle = `rgba(212,168,67,${0.2 + facing * 0.25})`;
-      cx.lineWidth = 1.5;
+      cx.strokeStyle = `rgba(212,168,67,${0.25 + facing * 0.35})`;
+      cx.lineWidth = 2;
       cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.stroke();
     } else {
       cx.drawImage(backCv, -CW / 2, -CH / 2, CW, CH);
     }
 
-    if (z > 0.3) {
+    // Glow on nearest cards
+    if (z > 0.2) {
       cx.shadowColor = 'transparent';
-      cx.strokeStyle = `rgba(212,168,67,${(z - 0.3) * 0.15})`;
-      cx.lineWidth = 1;
+      cx.strokeStyle = `rgba(212,168,67,${(z - 0.2) * 0.2})`;
+      cx.lineWidth = 1.5;
       cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.stroke();
     }
     cx.restore();
@@ -158,7 +162,7 @@ function drawCrystalBall(t, cbX, cbY, w, h) {
   const pulse = Math.sin(t * 1.2) * 0.3 + 0.7;
   cx.save();
   const auraGrd = cx.createRadialGradient(cbX, cbY, cbR * 0.3, cbX, cbY, cbR * 2.5);
-  auraGrd.addColorStop(0, `rgba(140,100,220,${0.06 * pulse})`);
+  auraGrd.addColorStop(0, `rgba(200,50,50,${0.06 * pulse})`);
   auraGrd.addColorStop(0.5, `rgba(212,168,67,${0.03 * pulse})`);
   auraGrd.addColorStop(1, 'transparent');
   cx.fillStyle = auraGrd;
@@ -184,9 +188,9 @@ function drawCrystalBall(t, cbX, cbY, w, h) {
 
   // Dark interior
   const ballGrd = cx.createRadialGradient(cbX - cbR * 0.2, cbY - cbR * 0.25, 0, cbX, cbY, cbR);
-  ballGrd.addColorStop(0, 'rgba(30,15,50,0.85)');
-  ballGrd.addColorStop(0.6, 'rgba(15,8,30,0.9)');
-  ballGrd.addColorStop(1, 'rgba(5,2,15,0.95)');
+  ballGrd.addColorStop(0, 'rgba(50,12,18,0.85)');
+  ballGrd.addColorStop(0.6, 'rgba(30,6,10,0.9)');
+  ballGrd.addColorStop(1, 'rgba(15,2,5,0.95)');
   cx.fillStyle = ballGrd;
   cx.fillRect(cbX - cbR, cbY - cbR, cbR * 2, cbR * 2);
 
@@ -207,7 +211,7 @@ function drawCrystalBall(t, cbX, cbY, w, h) {
       sGrd.addColorStop(0, `rgba(212,168,67,${smokeAlpha * 1.5})`);
       sGrd.addColorStop(1, 'transparent');
     } else {
-      sGrd.addColorStop(0, `rgba(140,90,200,${smokeAlpha * 1.2})`);
+      sGrd.addColorStop(0, `rgba(200,60,60,${smokeAlpha * 1.2})`);
       sGrd.addColorStop(1, 'transparent');
     }
     cx.fillStyle = sGrd;
@@ -226,7 +230,7 @@ function drawCrystalBall(t, cbX, cbY, w, h) {
     const tAlpha = (1 - risePhase) * 0.1;
 
     const tGrd = cx.createRadialGradient(tx, ty, 0, tx, ty, tSize);
-    tGrd.addColorStop(0, `rgba(180,140,220,${tAlpha})`);
+    tGrd.addColorStop(0, `rgba(220,80,60,${tAlpha})`);
     tGrd.addColorStop(1, 'transparent');
     cx.fillStyle = tGrd;
     cx.beginPath();
@@ -236,8 +240,8 @@ function drawCrystalBall(t, cbX, cbY, w, h) {
 
   // ── Inner mystical glow (pulsing core) ──
   const coreGrd = cx.createRadialGradient(cbX, cbY, 0, cbX, cbY, cbR * 0.5);
-  coreGrd.addColorStop(0, `rgba(212,168,67,${0.04 + pulse * 0.03})`);
-  coreGrd.addColorStop(0.5, `rgba(140,80,200,${0.02 + pulse * 0.02})`);
+  coreGrd.addColorStop(0, `rgba(220,80,40,${0.05 + pulse * 0.04})`);
+  coreGrd.addColorStop(0.5, `rgba(180,30,30,${0.03 + pulse * 0.02})`);
   coreGrd.addColorStop(1, 'transparent');
   cx.fillStyle = coreGrd;
   cx.fillRect(cbX - cbR, cbY - cbR, cbR * 2, cbR * 2);
@@ -262,7 +266,7 @@ function drawCrystalBall(t, cbX, cbY, w, h) {
   // Edge rim light
   cx.beginPath();
   cx.arc(cbX, cbY, cbR - 0.5, 0, Math.PI * 2);
-  cx.strokeStyle = `rgba(180,160,220,${0.12 + pulse * 0.06})`;
+  cx.strokeStyle = `rgba(220,100,80,${0.12 + pulse * 0.06})`;
   cx.lineWidth = 1.5;
   cx.stroke();
 
@@ -273,6 +277,80 @@ function drawCrystalBall(t, cbX, cbY, w, h) {
   cx.lineWidth = 1;
   cx.stroke();
   cx.restore();
+
+  // ── Rising heat-haze shimmer above the ball ──
+  const hazeCount = 24;
+  const hazeMaxH = cbR * 5.5;
+  for (let i = 0; i < hazeCount; i++) {
+    const speed = 0.3 + (i % 5) * 0.07;
+    const phase = t * speed + i * 1.31;
+    const rise = (phase % 3.2) / 3.2;
+
+    const wobbleFreq = 2.2 + (i % 4) * 0.7;
+    const wobbleAmp = cbR * (0.3 + (i % 5) * 0.08);
+    const hx = cbX + Math.sin(phase * wobbleFreq + i * 0.9) * wobbleAmp * (1 - rise * 0.3);
+
+    const hy = cbY - cbR - rise * hazeMaxH;
+
+    const life = rise;
+    const sizeBase = cbR * (0.12 + (i % 4) * 0.05);
+    const size = sizeBase * (0.6 + Math.sin(life * Math.PI) * 1.5);
+
+    const fadeIn = Math.min(1, life * 3);
+    const fadeOut = Math.max(0, 1 - (life - 0.4) * 1.6);
+    const alpha = fadeIn * fadeOut * (0.18 + Math.sin(t * 3 + i * 2.1) * 0.06);
+
+    if (alpha < 0.005 || size < 0.5) continue;
+
+    cx.save();
+    cx.globalAlpha = 1;
+
+    const colorType = i % 5;
+    let r, g, b;
+    if (colorType === 0)      { r = 230; g = 70; b = 50; }    // bright red
+    else if (colorType === 1) { r = 255; g = 130; b = 80; }   // orange-red
+    else if (colorType === 2) { r = 255; g = 200; b = 140; }  // warm light
+    else if (colorType === 3) { r = 180; g = 40; b = 40; }    // deep red
+    else                      { r = 255; g = 160; b = 60; }   // amber
+
+    const hGrd = cx.createRadialGradient(hx, hy, 0, hx, hy, size);
+    hGrd.addColorStop(0, `rgba(${r},${g},${b},${alpha * 2.0})`);
+    hGrd.addColorStop(0.35, `rgba(${r},${g},${b},${alpha * 0.9})`);
+    hGrd.addColorStop(0.7, `rgba(${r},${g},${b},${alpha * 0.3})`);
+    hGrd.addColorStop(1, 'transparent');
+    cx.fillStyle = hGrd;
+
+    cx.translate(hx, hy);
+    cx.scale(1, 1.6);
+    cx.beginPath();
+    cx.arc(0, 0, size, 0, Math.PI * 2);
+    cx.fill();
+    cx.restore();
+  }
+
+  // ── Vertical shimmer streaks (light pillars) ──
+  for (let i = 0; i < 8; i++) {
+    const streakPhase = t * (0.22 + i * 0.05) + i * 1.9;
+    const streakRise = (streakPhase % 3.5) / 3.5;
+    const sx = cbX + Math.sin(streakPhase * 1.6 + i * 1.3) * cbR * 0.65;
+    const sy = cbY - cbR - streakRise * hazeMaxH * 0.6;
+    const streakH = cbR * (0.5 + Math.sin(streakPhase) * 0.25);
+    const streakW = cbR * 0.035 + Math.sin(t * 2 + i) * cbR * 0.015;
+    const streakAlpha = Math.sin(streakRise * Math.PI) * (0.1 + Math.sin(t * 2.5 + i * 3) * 0.04);
+
+    if (streakAlpha < 0.005) continue;
+
+    cx.save();
+    const stGrd = cx.createLinearGradient(sx, sy + streakH / 2, sx, sy - streakH / 2);
+    stGrd.addColorStop(0, 'transparent');
+    stGrd.addColorStop(0.2, `rgba(230,90,50,${streakAlpha * 0.7})`);
+    stGrd.addColorStop(0.5, `rgba(255,180,100,${streakAlpha * 1.8})`);
+    stGrd.addColorStop(0.8, `rgba(230,90,50,${streakAlpha * 0.7})`);
+    stGrd.addColorStop(1, 'transparent');
+    cx.fillStyle = stGrd;
+    cx.fillRect(sx - streakW, sy - streakH / 2, streakW * 2, streakH);
+    cx.restore();
+  }
 }
 
 // ═══════ UTILITY ═══════
@@ -845,7 +923,26 @@ ${ci}
 }
 
 function closeResult() { document.getElementById('rov').classList.remove('show'); }
-function restart() { closeResult(); closeResultPanel(); resetTarot(); showPage('tarot'); }
+function restart() {
+  closeResult();
+  closeResultPanel();
+  // Reset state but don't start idle yet
+  st = 'idle';
+  unlisten();
+  cCards = [];
+  idleCards = [];
+  sel = [];
+  revealLayout = null;
+  updateDots();
+  document.getElementById('stxt').textContent = '카드를 셔플하세요';
+  const btn = document.getElementById('mainBtn');
+  btn.disabled = false;
+  btn.style.display = '';
+  // Switch to tarot page first (restores layout)
+  showPage('tarot');
+  // Now canvas has correct size — start idle animation
+  startIdleAnimation();
+}
 
 function closeResultPanel() {
   document.getElementById('resultPanel').classList.remove('show');
@@ -865,7 +962,22 @@ function closeResultPanel() {
 function closeResultAndReset() {
   document.getElementById('rov').classList.remove('show');
   closeResultPanel();
-  if (st === 'done' || st === 'reveal') resetTarot();
+  if (st === 'done' || st === 'reveal') {
+    st = 'idle';
+    unlisten();
+    cCards = [];
+    idleCards = [];
+    sel = [];
+    revealLayout = null;
+    updateDots();
+    document.getElementById('stxt').textContent = '카드를 셔플하세요';
+    const btn = document.getElementById('mainBtn');
+    btn.disabled = false;
+    btn.style.display = '';
+    // Resize first, then start idle with correct dimensions
+    resize();
+    startIdleAnimation();
+  }
 }
 
 // ═══════ HISTORY ═══════
@@ -1016,6 +1128,7 @@ function resetTarot() {
   st = 'idle';
   unlisten();
   cCards = [];
+  idleCards = [];
   sel = [];
   revealLayout = null;
   closeResultPanel();
@@ -1024,6 +1137,7 @@ function resetTarot() {
   const btn = document.getElementById('mainBtn');
   btn.disabled = false;
   btn.style.display = '';
+  resize();
   startIdleAnimation();
 }
 
