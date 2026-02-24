@@ -7,7 +7,7 @@
     {"id":"m3","name":"The Empress","img":"d/d2/RWS_Tarot_03_Empress.jpg","type":"major","meaning":"풍요, 모성, 자연의 축복","reversed":"의존, 창조력 부족"},
     {"id":"m4","name":"The Emperor","img":"c/c3/RWS_Tarot_04_Emperor.jpg","type":"major","meaning":"권위, 안정, 구조와 질서","reversed":"독재, 경직, 통제"},
     {"id":"m5","name":"Hierophant","img":"8/8d/RWS_Tarot_05_Hierophant.jpg","type":"major","meaning":"전통, 지혜, 영적 인도","reversed":"독단, 형식주의"},
-    {"id":"m6","name":"The Lovers","img":"3/3a/TheLovers.jpg","type":"major","meaning":"사랑, 선택, 조화","reversed":"불화, 잘못된 선택"},
+    {"id":"m6","name":"The Lovers","img":"d/db/RWS_Tarot_06_Lovers.jpg","type":"major","meaning":"사랑, 선택, 조화","reversed":"불화, 잘못된 선택"},
     {"id":"m7","name":"The Chariot","img":"9/9b/RWS_Tarot_07_Chariot.jpg","type":"major","meaning":"승리, 의지, 결단력","reversed":"방향 상실, 공격성"},
     {"id":"m8","name":"Strength","img":"f/f5/RWS_Tarot_08_Strength.jpg","type":"major","meaning":"용기, 인내, 내면의 힘","reversed":"자기 의심, 나약함"},
     {"id":"m9","name":"The Hermit","img":"4/4d/RWS_Tarot_09_Hermit.jpg","type":"major","meaning":"내면 탐색, 고독, 깨달음","reversed":"고립, 외로움"},
