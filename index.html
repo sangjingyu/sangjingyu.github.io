@@ -1,574 +1,95 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>✦ Mystic Tarot ✦</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-<style>
-:root{--gold:#d4a843;--gold-l:#f0d68a;--gold-d:#8b6914;--bg:#0a0612;--bg2:#1a0f2e;--purple:#6b3fa0;--text:#e8dcc8;--text2:#a99e8d;--cw:100;--ch:174;--nav-h:56px}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;overflow:hidden}
-.nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);z-index:100;background:rgba(10,6,18,.94);backdrop-filter:blur(16px);border-top:1px solid rgba(212,168,67,.15);display:flex;align-items:center;justify-content:space-around}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text2);cursor:pointer;font-family:inherit;font-size:.62rem;padding:6px 16px;transition:color .3s;position:relative}
-.nav-btn.active{color:var(--gold)}
-.nav-btn.active::before{content:'';position:absolute;top:-1px;left:20%;right:20%;height:2px;background:var(--gold);border-radius:0 0 2px 2px}
-.nav-btn svg{width:22px;height:22px;fill:currentColor}
-.page{position:fixed;inset:0;bottom:var(--nav-h);display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
-.page.active{display:flex}
-.page-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.hdr{text-align:center;padding:14px 16px 6px;flex-shrink:0}
-.hdr h1{font-family:'Cinzel',serif;font-size:clamp(1.1rem,4vw,1.7rem);letter-spacing:.18em;background:linear-gradient(135deg,var(--gold-d),var(--gold),var(--gold-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hdr .sub{font-size:.75rem;color:var(--text2);margin-top:2px;font-family:'Cormorant Garamond',serif;font-style:italic}
-#canvasWrap{flex:1;position:relative;width:100%;min-height:0}
-#tarotCanvas{width:100%;height:100%;display:block;touch-action:none}
-.ctrl{flex-shrink:0;padding:8px 16px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
-.btn{font-family:'Cinzel',serif;font-size:.82rem;background:transparent;color:var(--gold);border:1px solid var(--gold);padding:9px 30px;border-radius:28px;cursor:pointer;letter-spacing:.12em;transition:all .3s}
-.btn:hover{background:rgba(212,168,67,.1);box-shadow:0 0 20px rgba(212,168,67,.2)}
-.btn:disabled{opacity:.3;pointer-events:none}
-.btn-g{background:var(--gold);color:var(--bg);font-weight:700}
-.btn-g:hover{background:var(--gold-l)}
-.btn-sm{font-size:.72rem;padding:6px 18px}
-.stxt{font-size:.75rem;color:var(--gold-l);min-height:1.2em;letter-spacing:.04em}
-.dots{display:flex;gap:8px;justify-content:center}
-.dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--gold);transition:all .4s}
-.dot.on{background:var(--gold);box-shadow:0 0 8px rgba(212,168,67,.5)}
-.qarea{flex-shrink:0;padding:0 16px 6px}
-.qinput{width:100%;background:rgba(26,15,46,.5);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:9px 12px;color:var(--text);font-family:inherit;font-size:.82rem;resize:none;outline:none;min-height:40px;max-height:72px}
-.qinput:focus{border-color:rgba(212,168,67,.5)}
-.qinput::placeholder{color:var(--text2);opacity:.5}
-/* Result */
-.rov{position:fixed;inset:0;z-index:200;background:rgba(10,6,18,.96);backdrop-filter:blur(16px);display:none;flex-direction:column}
-.rov.show{display:flex}
-.rov-h{flex-shrink:0;padding:16px;text-align:center;border-bottom:1px solid rgba(212,168,67,.1)}
-.rov-h h2{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold);letter-spacing:.12em}
-.rov-b{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
-.rov-f{flex-shrink:0;padding:10px 16px 16px;text-align:center;display:flex;gap:10px;justify-content:center}
-.rcrow{display:flex;gap:8px;overflow-x:auto;padding:6px 0 14px;justify-content:center;flex-wrap:wrap}
-.rcm{width:215px;flex-shrink:0;text-align:center}
-.rcm img{width:200px; height:330px; border-radius:4px;border:1px solid rgba(212,168,67,.3);box-shadow:0 2px 8px rgba(0,0,0,.4)}
-.rcm .p{font-size:1rem;color:var(--text2);margin-top:3px}
-.rcm .n{font-size:1rem;color:var(--gold-l);margin-top:1px;line-height:1.2}
-.rcm .d{font-size:1rem;margin-top:1px}
-.air{background:rgba(26,15,46,.35);border:1px solid rgba(212,168,67,.1);border-radius:10px;padding:14px;margin-top:10px;font-size:.82rem;line-height:1.7;white-space:pre-wrap}
-.ail{text-align:center;padding:28px;color:var(--gold);font-style:italic}
-.ail::after{content:'';display:inline-block;width:14px;height:14px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:sp .8s linear infinite;margin-left:6px;vertical-align:middle}
-@keyframes sp{to{transform:rotate(360deg)}}
-.aw{background:rgba(200,50,50,.12);border:1px solid rgba(200,80,80,.25);border-radius:8px;padding:10px;margin:10px 0;font-size:.78rem;color:#e88;text-align:center}
-.aw a{color:var(--gold);text-decoration:underline}
-/* Settings */
-.sgrp{background:rgba(26,15,46,.35);border:1px solid rgba(212,168,67,.08);border-radius:10px;padding:14px;margin:0 16px 14px}
-.sgrp h3{font-family:'Cinzel',serif;font-size:.82rem;color:var(--gold);letter-spacing:.08em;margin-bottom:10px}
-.sgrp label{display:block;font-size:.75rem;color:var(--text2);margin-bottom:5px}
-.sinput{width:100%;background:rgba(10,6,18,.5);border:1px solid rgba(212,168,67,.2);border-radius:8px;padding:9px 11px;color:var(--text);font-family:inherit;font-size:.82rem;outline:none}
-.sinput:focus{border-color:rgba(212,168,67,.5)}
-.spgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.spopt{background:rgba(10,6,18,.4);border:1px solid rgba(212,168,67,.12);border-radius:8px;padding:9px;cursor:pointer;text-align:center;transition:all .3s;font-size:.75rem;color:var(--text2)}
-.spopt.act{border-color:var(--gold);color:var(--gold);background:rgba(212,168,67,.07)}
-.spopt .sn{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.06em}
-.spopt .sc{font-size:.58rem;opacity:.5;margin-top:2px}
-.svd{font-size:.7rem;color:#7be854;text-align:center;margin-top:6px;opacity:0;transition:opacity .3s}
-.svd.show{opacity:1}
-/* History */
-.hlist{padding:10px 16px}
-.hempty{text-align:center;padding:36px 18px;color:var(--text2);font-style:italic;font-size:.82rem}
-.hitem{background:rgba(26,15,46,.35);border:1px solid rgba(212,168,67,.08);border-radius:10px;padding:12px;margin-bottom:9px;cursor:pointer;transition:border-color .3s}
-.hitem:hover{border-color:rgba(212,168,67,.25)}
-.htop{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.hdate{font-size:.6rem;color:var(--text2)}
-.hsp{font-family:'Cinzel',serif;font-size:.62rem;color:var(--gold);letter-spacing:.06em}
-.hq{font-size:.76rem;color:var(--text);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hchips{display:flex;gap:3px;margin-top:5px;flex-wrap:wrap}
-.hchip{font-size:.52rem;background:rgba(212,168,67,.08);color:var(--gold-l);padding:2px 5px;border-radius:3px;white-space:nowrap}
-@media(max-width:480px){:root{--cw:62;--ch:108;--nav-h:50px}.hdr h1{font-size:1rem}.btn{padding:7px 22px;font-size:.75rem}}
-@media(min-width:768px){:root{--cw:110;--ch:191}}
-@media(min-width:1200px){:root{--cw:120;--ch:209}.page,.nav,.rov{max-width:900px;left:50%;right:auto;width:100%;transform:translateX(-50%)}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+  <title>✦ Mystic Tarot ✦</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<nav class="nav">
-<button class="nav-btn active" data-p="tarot" onclick="showPage('tarot')"><svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18l7 3.5v7.64l-7 3.5-7-3.5V7.68l7-3.5z"/><circle cx="12" cy="12" r="2"/></svg><span>타로</span></button>
-<button class="nav-btn" data-p="history" onclick="showPage('history')"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7a6.99 6.99 0 01-4.94-2.06l-1.42 1.42A8.96 8.96 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg><span>내역</span></button>
-<button class="nav-btn" data-p="settings" onclick="showPage('settings')"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg><span>설정</span></button>
-</nav>
-<div class="page active" id="pg-tarot">
-<div class="hdr"><h1>✦ Mystic Tarot ✦</h1><div class="sub" id="spLabel">쓰리 카드 (3장)</div></div>
-<div class="qarea"><textarea class="qinput" id="qInput" placeholder="점을 보고 싶은 내용을 입력하세요..." rows="1"></textarea></div>
-<div id="canvasWrap"><canvas id="tarotCanvas"></canvas></div>
-<div class="ctrl" id="ctrlArea">
-<div class="dots" id="dotRow"></div>
-<div class="stxt" id="stxt">카드를 셔플하세요</div>
-<button class="btn btn-g" id="mainBtn" onclick="onMain()">✦ 셔플하기 ✦</button>
-</div>
-</div>
-<div class="page" id="pg-history"><div class="hdr"><h1>✦ 타로 내역 ✦</h1><div class="sub">과거의 점술 기록</div></div><div class="page-scroll"><div class="hlist" id="hList"></div></div></div>
-<div class="page" id="pg-settings"><div class="hdr"><h1>✦ 설정 ✦</h1><div class="sub">타로 환경을 설정하세요</div></div>
-<div class="page-scroll" style="padding-top:10px">
-<div class="sgrp"><h3>✦ Gemini AI API Key</h3><label>Google AI Studio에서 발급받은 API 키</label><input type="password" class="sinput" id="apiInput" placeholder="AIza..."><div style="margin-top:7px;text-align:right"><button class="btn btn-sm" onclick="saveKey()">저장</button></div><div class="svd" id="keySvd">✓ 저장되었습니다</div></div>
-<div class="sgrp"><h3>✦ 스프레드 선택</h3><div class="spgrid" id="spGrid"></div><div class="svd" id="spSvd">✓ 스프레드가 변경되었습니다</div></div>
-</div></div>
-<div class="rov" id="rov">
-<div class="rov-h"><h2 id="rovT">✦ 타로 해석 ✦</h2></div>
-<div class="rov-b" id="rovB"></div>
-<div class="rov-f"><button class="btn" onclick="closeR()">닫기</button><button class="btn btn-g" onclick="restart()">다시 뽑기</button></div>
-</div>
-<script>
-// ═══════ DECK ═══════
-const W='https://upload.wikimedia.org/wikipedia/commons/';
-const D=[
-{id:'m0',n:'The Fool',img:W+'9/90/RWS_Tarot_00_Fool.jpg',t:'major',m:'새로운 시작, 모험, 자유',r:'무모함, 방향 상실, 경솔'},
-{id:'m1',n:'The Magician',img:W+'d/de/RWS_Tarot_01_Magician.jpg',t:'major',m:'창조력, 의지력, 기술',r:'속임수, 재능 낭비'},
-{id:'m2',n:'High Priestess',img:W+'8/88/RWS_Tarot_02_High_Priestess.jpg',t:'major',m:'직관, 신비, 내면의 지혜',r:'비밀, 직관 무시'},
-{id:'m3',n:'The Empress',img:W+'d/d2/RWS_Tarot_03_Empress.jpg',t:'major',m:'풍요, 모성, 자연의 축복',r:'의존, 창조력 부족'},
-{id:'m4',n:'The Emperor',img:W+'c/c3/RWS_Tarot_04_Emperor.jpg',t:'major',m:'권위, 안정, 구조와 질서',r:'독재, 경직, 통제'},
-{id:'m5',n:'Hierophant',img:W+'8/8d/RWS_Tarot_05_Hierophant.jpg',t:'major',m:'전통, 지혜, 영적 인도',r:'독단, 형식주의'},
-{id:'m6',n:'The Lovers',img:W+'d/db/RWS_Tarot_06_Lovers.jpg',t:'major',m:'사랑, 선택, 조화',r:'불화, 잘못된 선택'},
-{id:'m7',n:'The Chariot',img:W+'9/9b/RWS_Tarot_07_Chariot.jpg',t:'major',m:'승리, 의지, 결단력',r:'방향 상실, 공격성'},
-{id:'m8',n:'Strength',img:W+'f/f5/RWS_Tarot_08_Strength.jpg',t:'major',m:'용기, 인내, 내면의 힘',r:'자기 의심, 나약함'},
-{id:'m9',n:'The Hermit',img:W+'4/4d/RWS_Tarot_09_Hermit.jpg',t:'major',m:'내면 탐색, 고독, 깨달음',r:'고립, 외로움'},
-{id:'m10',n:'Wheel of Fortune',img:W+'3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg',t:'major',m:'운명의 전환, 행운, 순환',r:'불운, 변화 저항'},
-{id:'m11',n:'Justice',img:W+'e/e0/RWS_Tarot_11_Justice.jpg',t:'major',m:'정의, 균형, 인과응보',r:'불공정, 편견'},
-{id:'m12',n:'Hanged Man',img:W+'2/2b/RWS_Tarot_12_Hanged_Man.jpg',t:'major',m:'희생, 새로운 시각',r:'지연, 무의미한 희생'},
-{id:'m13',n:'Death',img:W+'d/d7/RWS_Tarot_13_Death.jpg',t:'major',m:'변화, 재탄생, 종결',r:'변화 저항, 정체'},
-{id:'m14',n:'Temperance',img:W+'f/f8/RWS_Tarot_14_Temperance.jpg',t:'major',m:'절제, 조화, 인내',r:'과잉, 불균형'},
-{id:'m15',n:'The Devil',img:W+'5/55/RWS_Tarot_15_Devil.jpg',t:'major',m:'유혹, 속박, 그림자',r:'해방, 구속 탈출'},
-{id:'m16',n:'The Tower',img:W+'5/53/RWS_Tarot_16_Tower.jpg',t:'major',m:'급변, 깨달음, 해방',r:'변화 회피, 지연된 재난'},
-{id:'m17',n:'The Star',img:W+'d/db/RWS_Tarot_17_Star.jpg',t:'major',m:'희망, 영감, 치유',r:'절망, 신뢰 상실'},
-{id:'m18',n:'The Moon',img:W+'7/7f/RWS_Tarot_18_Moon.jpg',t:'major',m:'환상, 불안, 잠재의식',r:'혼란 해소, 진실 발견'},
-{id:'m19',n:'The Sun',img:W+'1/17/RWS_Tarot_19_Sun.jpg',t:'major',m:'성공, 기쁨, 활력',r:'낙관 과잉, 지연된 성공'},
-{id:'m20',n:'Judgement',img:W+'d/dd/RWS_Tarot_20_Judgement.jpg',t:'major',m:'부활, 심판, 내면의 부름',r:'자기 회의, 후회'},
-{id:'m21',n:'The World',img:W+'f/ff/RWS_Tarot_21_World.jpg',t:'major',m:'완성, 성취, 통합',r:'미완성, 부족감'},
-{id:'w1',n:'Ace of Wands',img:W+'1/11/Wands01.jpg',t:'wands',m:'영감, 새로운 열정',r:'지연, 창의력 부족'},
-{id:'w2',n:'Two of Wands',img:W+'0/0f/Wands02.jpg',t:'wands',m:'계획, 미래의 결정',r:'우유부단, 두려움'},
-{id:'w3',n:'Three of Wands',img:W+'f/ff/Wands03.jpg',t:'wands',m:'확장, 기회의 도래',r:'장애물, 지연'},
-{id:'w4',n:'Four of Wands',img:W+'a/a4/Wands04.jpg',t:'wands',m:'축하, 안정된 기반',r:'불안정, 갈등'},
-{id:'w5',n:'Five of Wands',img:W+'9/9d/Wands05.jpg',t:'wands',m:'경쟁, 갈등',r:'회피, 타협'},
-{id:'w6',n:'Six of Wands',img:W+'3/3b/Wands06.jpg',t:'wands',m:'승리, 인정',r:'자만, 명성 실추'},
-{id:'w7',n:'Seven of Wands',img:W+'e/e4/Wands07.jpg',t:'wands',m:'방어, 도전에 맞섬',r:'포기, 압도당함'},
-{id:'w8',n:'Eight of Wands',img:W+'6/6b/Wands08.jpg',t:'wands',m:'빠른 진행, 소식',r:'지연, 좌절'},
-{id:'w9',n:'Nine of Wands',img:W+'4/4d/Tarot_Nine_of_Wands.jpg',t:'wands',m:'인내, 끈기',r:'피로, 의심'},
-{id:'w10',n:'Ten of Wands',img:W+'0/0b/Wands10.jpg',t:'wands',m:'과중한 짐, 책임',r:'번아웃, 위임 필요'},
-{id:'w11',n:'Page of Wands',img:W+'6/6a/Wands11.jpg',t:'wands',m:'탐험, 열정적 소식',r:'미숙함, 방향 상실'},
-{id:'w12',n:'Knight of Wands',img:W+'1/16/Wands12.jpg',t:'wands',m:'모험, 대담한 행동',r:'성급함, 무모함'},
-{id:'w13',n:'Queen of Wands',img:W+'0/0d/Wands13.jpg',t:'wands',m:'자신감, 결단력',r:'질투, 이기심'},
-{id:'w14',n:'King of Wands',img:W+'c/ce/Wands14.jpg',t:'wands',m:'리더십, 비전',r:'독재적, 충동적'},
-{id:'c1',n:'Ace of Cups',img:W+'3/36/Cups01.jpg',t:'cups',m:'새로운 사랑, 감정의 시작',r:'감정 억압, 공허'},
-{id:'c2',n:'Two of Cups',img:W+'f/f8/Cups02.jpg',t:'cups',m:'파트너십, 유대',r:'불균형, 단절'},
-{id:'c3',n:'Three of Cups',img:W+'7/7a/Cups03.jpg',t:'cups',m:'우정, 축제',r:'과잉, 고립'},
-{id:'c4',n:'Four of Cups',img:W+'3/35/Cups04.jpg',t:'cups',m:'무관심, 재고',r:'새로운 인식, 동기 부여'},
-{id:'c5',n:'Five of Cups',img:W+'d/d7/Cups05.jpg',t:'cups',m:'상실, 후회',r:'수용, 회복'},
-{id:'c6',n:'Six of Cups',img:W+'1/17/Cups06.jpg',t:'cups',m:'향수, 순수한 기쁨',r:'과거 집착, 미성숙'},
-{id:'c7',n:'Seven of Cups',img:W+'a/ae/Cups07.jpg',t:'cups',m:'환상, 선택의 과다',r:'현실 직시, 집중'},
-{id:'c8',n:'Eight of Cups',img:W+'6/60/Cups08.jpg',t:'cups',m:'떠남, 더 깊은 의미 추구',r:'방황, 두려움으로 머무름'},
-{id:'c9',n:'Nine of Cups',img:W+'2/24/Cups09.jpg',t:'cups',m:'만족, 소원 성취',r:'탐욕, 불만족'},
-{id:'c10',n:'Ten of Cups',img:W+'8/84/Cups10.jpg',t:'cups',m:'가정의 행복, 조화',r:'가정 불화, 기대 좌절'},
-{id:'c11',n:'Page of Cups',img:W+'a/ad/Cups11.jpg',t:'cups',m:'직관적 메시지, 상상력',r:'감정적 미숙'},
-{id:'c12',n:'Knight of Cups',img:W+'f/fa/Cups12.jpg',t:'cups',m:'로맨스, 제안',r:'변덕, 비현실적 기대'},
-{id:'c13',n:'Queen of Cups',img:W+'6/62/Cups13.jpg',t:'cups',m:'공감, 직관',r:'감정 의존, 불안정'},
-{id:'c14',n:'King of Cups',img:W+'0/04/Cups14.jpg',t:'cups',m:'감정적 균형, 관대함',r:'감정 조종, 냉담'},
-{id:'s1',n:'Ace of Swords',img:W+'1/1a/Swords01.jpg',t:'swords',m:'명확한 사고, 진실',r:'혼란, 잘못된 판단'},
-{id:'s2',n:'Two of Swords',img:W+'9/9e/Swords02.jpg',t:'swords',m:'결정의 교착, 균형',r:'정보 과부하, 선택 회피'},
-{id:'s3',n:'Three of Swords',img:W+'0/02/Swords03.jpg',t:'swords',m:'슬픔, 마음의 상처',r:'치유의 시작, 용서'},
-{id:'s4',n:'Four of Swords',img:W+'b/bf/Swords04.jpg',t:'swords',m:'휴식, 회복',r:'소진, 불안'},
-{id:'s5',n:'Five of Swords',img:W+'2/23/Swords05.jpg',t:'swords',m:'패배, 갈등의 끝',r:'화해, 과거 청산'},
-{id:'s6',n:'Six of Swords',img:W+'2/29/Swords06.jpg',t:'swords',m:'전환, 이동',r:'정체, 미해결 문제'},
-{id:'s7',n:'Seven of Swords',img:W+'3/34/Swords07.jpg',t:'swords',m:'전략, 은밀한 행동',r:'양심의 가책'},
-{id:'s8',n:'Eight of Swords',img:W+'a/a7/Swords08.jpg',t:'swords',m:'구속, 자기 제한',r:'해방, 새로운 시각'},
-{id:'s9',n:'Nine of Swords',img:W+'2/2f/Swords09.jpg',t:'swords',m:'불안, 악몽',r:'희망, 걱정 해소'},
-{id:'s10',n:'Ten of Swords',img:W+'d/d4/Swords10.jpg',t:'swords',m:'끝, 최하점에서 재기',r:'재생, 회복의 조짐'},
-{id:'s11',n:'Page of Swords',img:W+'4/4c/Swords11.jpg',t:'swords',m:'호기심, 경계',r:'험담, 무계획'},
-{id:'s12',n:'Knight of Swords',img:W+'b/b0/Swords12.jpg',t:'swords',m:'돌진, 야망',r:'무모함, 공격성'},
-{id:'s13',n:'Queen of Swords',img:W+'d/d4/Swords13.jpg',t:'swords',m:'독립, 명석한 판단',r:'냉정함, 편협'},
-{id:'s14',n:'King of Swords',img:W+'3/33/Swords14.jpg',t:'swords',m:'권위, 지적 힘',r:'권력 남용, 비정함'},
-{id:'p1',n:'Ace of Pentacles',img:W+'f/fd/Pents01.jpg',t:'pent',m:'새로운 재정적 기회',r:'기회 놓침, 불안정'},
-{id:'p2',n:'Two of Pentacles',img:W+'9/9f/Pents02.jpg',t:'pent',m:'균형, 적응',r:'불균형, 과부하'},
-{id:'p3',n:'Three of Pentacles',img:W+'4/42/Pents03.jpg',t:'pent',m:'협력, 장인 정신',r:'불협화음, 미숙'},
-{id:'p4',n:'Four of Pentacles',img:W+'3/35/Pents04.jpg',t:'pent',m:'안정, 소유욕',r:'인색, 집착'},
-{id:'p5',n:'Five of Pentacles',img:W+'9/96/Pents05.jpg',t:'pent',m:'궁핍, 고립',r:'회복, 도움의 손길'},
-{id:'p6',n:'Six of Pentacles',img:W+'a/a6/Pents06.jpg',t:'pent',m:'관대함, 나눔',r:'빚, 조건부 도움'},
-{id:'p7',n:'Seven of Pentacles',img:W+'6/6a/Pents07.jpg',t:'pent',m:'인내, 장기적 투자',r:'조급함, 보상 부족'},
-{id:'p8',n:'Eight of Pentacles',img:W+'4/49/Pents08.jpg',t:'pent',m:'숙련, 근면',r:'완벽주의, 지루함'},
-{id:'p9',n:'Nine of Pentacles',img:W+'f/f0/Pents09.jpg',t:'pent',m:'풍요, 자립',r:'과소비, 의존'},
-{id:'p10',n:'Ten of Pentacles',img:W+'4/42/Pents10.jpg',t:'pent',m:'유산, 가문의 번영',r:'재정 손실, 가족 갈등'},
-{id:'p11',n:'Page of Pentacles',img:W+'e/ec/Pents11.jpg',t:'pent',m:'학습, 새로운 기술',r:'무계획, 기회 놓침'},
-{id:'p12',n:'Knight of Pentacles',img:W+'d/d5/Pents12.jpg',t:'pent',m:'성실, 꾸준한 노력',r:'정체, 게으름'},
-{id:'p13',n:'Queen of Pentacles',img:W+'8/88/Pents13.jpg',t:'pent',m:'풍요로운 돌봄, 실용',r:'자기 방치, 불안정'},
-{id:'p14',n:'King of Pentacles',img:W+'1/1c/Pents14.jpg',t:'pent',m:'부, 사업 성공',r:'탐욕, 물질 만능주의'},
-];
 
-// ═══════ SPREADS ═══════
-const SP={
-one:{name:'원 카드',en:'One Card',cnt:1,pos:['현재 메시지']},
-three:{name:'쓰리 카드',en:'Three Card',cnt:3,pos:['과거','현재','미래']},
-celtic:{name:'켈트 십자가',en:'Celtic Cross',cnt:10,pos:['현재 상황','도전/장애','과거의 기초','최근 과거','가능한 결과','가까운 미래','자기 자신','환경','희망/두려움','최종 결과']},
-tree:{name:'생명의 나무',en:'Tree of Life',cnt:10,pos:['왕관(케테르)','지혜(호크마)','이해(비나)','자비(헤세드)','심판(게부라)','아름다움(티페레트)','승리(네짜흐)','영광(호드)','기초(예소드)','왕국(말쿠트)']},
-horseshoe:{name:'말 발굽',en:'Horseshoe',cnt:7,pos:['과거','현재','미래','최선의 행동','타인의 영향','장애물','결과']},
-fullmoon:{name:'보름달',en:'Full Moon',cnt:6,pos:['현재 에너지','내면의 욕구','외부 영향','무의식','의식적 인식','통합/결과']},
-};
+  <!-- ══════ Navigation ══════ -->
+  <nav class="nav">
+    <button class="nav-btn active" data-p="tarot" onclick="showPage('tarot')">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18l7 3.5v7.64l-7 3.5-7-3.5V7.68l7-3.5z"/><circle cx="12" cy="12" r="2"/></svg>
+      <span>타로</span>
+    </button>
+    <button class="nav-btn" data-p="history" onclick="showPage('history')">
+      <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7a6.99 6.99 0 01-4.94-2.06l-1.42 1.42A8.96 8.96 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+      <span>내역</span>
+    </button>
+    <button class="nav-btn" data-p="settings" onclick="showPage('settings')">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg>
+      <span>설정</span>
+    </button>
+  </nav>
 
-// ═══════ STATE ═══════
-let curSp='three',st='idle',deck=[],sel=[],cCards=[],imgCache={};
-const cv=document.getElementById('tarotCanvas'),cx=cv.getContext('2d');
-let CW,CH,backCv;
+  <!-- ══════ Tarot Page ══════ -->
+  <div class="page active" id="pg-tarot">
+    <div class="hdr">
+      <h1>✦ Mystic Tarot ✦</h1>
+      <div class="sub" id="spLabel">쓰리 카드 (3장)</div>
+    </div>
+    <div class="qarea">
+      <textarea class="qinput" id="qInput" placeholder="점을 보고 싶은 내용을 입력하세요..." rows="1"></textarea>
+    </div>
+    <div id="canvasWrap">
+      <canvas id="tarotCanvas"></canvas>
+    </div>
+    <div class="ctrl" id="ctrlArea">
+      <div class="dots" id="dotRow"></div>
+      <div class="stxt" id="stxt">카드를 셔플하세요</div>
+      <button class="btn btn-g" id="mainBtn" onclick="onMain()">✦ 셔플하기 ✦</button>
+    </div>
+  </div>
 
-// ═══════ UTIL ═══════
-function shuf(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
-function lerp(a,b,t){return a+(b-a)*t}
-function easeOut(t){return 1-Math.pow(1-t,3)}
-function gCS(){const s=getComputedStyle(document.documentElement);CW=parseFloat(s.getPropertyValue('--cw'));CH=parseFloat(s.getPropertyValue('--ch'))}
+  <!-- ══════ History Page ══════ -->
+  <div class="page" id="pg-history">
+    <div class="hdr">
+      <h1>✦ 타로 내역 ✦</h1>
+      <div class="sub">과거의 점술 기록</div>
+    </div>
+    <div class="page-scroll">
+      <div class="hlist" id="hList"></div>
+    </div>
+  </div>
 
-// ═══════ CANVAS ═══════
-function resize(){
-  const wr=document.getElementById('canvasWrap');
-  const dpr=window.devicePixelRatio||1;
-  cv.width=wr.clientWidth*dpr;cv.height=wr.clientHeight*dpr;
-  cv.style.width=wr.clientWidth+'px';cv.style.height=wr.clientHeight+'px';
-  cx.setTransform(dpr,0,0,dpr,0,0);
-  gCS();makeBack();
-}
+  <!-- ══════ Settings Page ══════ -->
+  <div class="page" id="pg-settings">
+    <div class="hdr">
+      <h1>✦ 설정 ✦</h1>
+      <div class="sub">타로 환경을 설정하세요</div>
+    </div>
+    <div class="page-scroll" style="padding-top:10px">
+      <div class="sgrp">
+        <h3>✦ Gemini AI API Key</h3>
+        <label>Google AI Studio에서 발급받은 API 키</label>
+        <input type="password" class="sinput" id="apiInput" placeholder="AIza...">
+        <div style="margin-top:7px;text-align:right">
+          <button class="btn btn-sm" onclick="saveApiKey()">저장</button>
+        </div>
+        <div class="svd" id="keySvd">✓ 저장되었습니다</div>
+      </div>
+      <div class="sgrp">
+        <h3>✦ 스프레드 선택</h3>
+        <div class="spgrid" id="spGrid"></div>
+        <div class="svd" id="spSvd">✓ 스프레드가 변경되었습니다</div>
+      </div>
+    </div>
+  </div>
 
-function makeBack(){
-  backCv=document.createElement('canvas');backCv.width=CW;backCv.height=CH;
-  const x=backCv.getContext('2d');
-  x.fillStyle='#1a0f2e';x.beginPath();x.roundRect(0,0,CW,CH,5);x.fill();
-  x.strokeStyle='rgba(212,168,67,.3)';x.lineWidth=1.5;x.beginPath();x.roundRect(1,1,CW-2,CH-2,4);x.stroke();
-  x.strokeStyle='rgba(212,168,67,.12)';x.lineWidth=1;x.beginPath();x.roundRect(5,5,CW-10,CH-10,3);x.stroke();
-  x.fillStyle='rgba(212,168,67,.04)';
-  for(let i=0;i<CW;i+=10)for(let j=0;j<CH;j+=10){x.save();x.translate(i+5,j+5);x.rotate(Math.PI/4);x.fillRect(-2.5,-2.5,5,5);x.restore()}
-  x.fillStyle='rgba(212,168,67,.25)';x.font=`${Math.floor(CW*.28)}px serif`;x.textAlign='center';x.textBaseline='middle';x.fillText('✦',CW/2,CH/2);
-}
+  <!-- ══════ Result Overlay ══════ -->
+  <div class="rov" id="rov">
+    <div class="rov-h"><h2 id="rovT">✦ 타로 해석 ✦</h2></div>
+    <div class="rov-b" id="rovB"></div>
+    <div class="rov-f">
+      <button class="btn" onclick="closeResult()">닫기</button>
+      <button class="btn btn-g" onclick="restart()">다시 뽑기</button>
+    </div>
+  </div>
 
-function loadImg(src){return new Promise(r=>{if(imgCache[src])return r(imgCache[src]);const i=new Image();i.crossOrigin='anonymous';i.onload=()=>{imgCache[src]=i;r(i)};i.onerror=()=>r(null);i.src=src})}
-
-let floatRAF=0,floatT=0;
-function drawCard(c){
-  cx.save();
-  const t=floatT;
-  // floating offset: each card has unique phase based on idx
-  const ph=c.idx*1.7+c.idx*c.idx*.3;
-  const floatY=Math.sin(t*1.2+ph)*4+Math.sin(t*0.7+ph*1.3)*2.5;
-  const floatX=Math.cos(t*0.8+ph*.9)*1.5;
-  const floatAng=Math.sin(t*0.5+ph*1.1)*0.8;
-  const floatSc=1+Math.sin(t*0.9+ph)*0.008;
-  // shadow depth pulses with float height
-  const shadowD=8+floatY*0.6;
-  const shadowB=12+Math.abs(floatY)*1.2;
-
-  cx.globalAlpha=c.a??1;
-  cx.translate(c.x+floatX,c.y+floatY);
-  cx.rotate(((c.ang||0)+floatAng)*Math.PI/180);
-  cx.scale((c.sc||1)*floatSc,(c.sc||1)*floatSc);
-
-  // dynamic shadow — deeper when card is "higher"
-  cx.shadowColor='rgba(0,0,0,.4)';cx.shadowBlur=shadowB;cx.shadowOffsetY=shadowD;
-
-  if(c.flip&&c.fImg){
-    cx.beginPath();cx.roundRect(-CW/2,-CH/2,CW,CH,5);cx.clip();
-    if(c.rev){cx.save();cx.rotate(Math.PI);cx.drawImage(c.fImg,-CW/2,-CH/2,CW,CH);cx.restore()}
-    else cx.drawImage(c.fImg,-CW/2,-CH/2,CW,CH);
-    // gold glow border — pulses gently
-    cx.shadowColor='transparent';
-    const glowA=.35+Math.sin(t*1.5+ph)*.1;
-    cx.strokeStyle=`rgba(212,168,67,${glowA})`;cx.lineWidth=1.5;
-    cx.beginPath();cx.roundRect(-CW/2,-CH/2,CW,CH,5);cx.stroke();
-    // soft outer glow
-    cx.shadowColor=`rgba(212,168,67,${.08+Math.sin(t+ph)*.04})`;cx.shadowBlur=18;
-    cx.strokeStyle='transparent';cx.beginPath();cx.roundRect(-CW/2,-CH/2,CW,CH,5);cx.stroke();
-  }else{
-    cx.drawImage(backCv,-CW/2,-CH/2,CW,CH);
-  }
-  // hover glow
-  if(c.hov&&!c.flip){
-    cx.shadowColor='rgba(212,168,67,.15)';cx.shadowBlur=20;
-    cx.strokeStyle='rgba(212,168,67,.55)';cx.lineWidth=1.5;
-    cx.beginPath();cx.roundRect(-CW/2,-CH/2,CW,CH,5);cx.stroke();
-    cx.fillStyle='rgba(212,168,67,.06)';cx.beginPath();cx.roundRect(-CW/2,-CH/2,CW,CH,5);cx.fill();
-  }
-  cx.restore();
-}
-
-function render(){
-  const w=cv.clientWidth,h=cv.clientHeight;cx.clearRect(0,0,w,h);
-  const t=floatT;
-  // ── Starfield background ──
-  for(let i=0;i<50;i++){
-    const sx=(Math.sin(i*127.1+t*.08)*.5+.5)*w;
-    const sy=(Math.cos(i*311.7+t*.06)*.5+.5)*h;
-    const bright=.5+Math.sin(i*73.3+t*1.5)*.5;
-    const sz=.4+bright*1.0;
-    cx.fillStyle=`rgba(212,168,67,${.008+bright*.018})`;
-    cx.beginPath();cx.arc(sx,sy,sz,0,Math.PI*2);cx.fill();
-  }
-  // ── Subtle mist / nebula ──
-  const grd=cx.createRadialGradient(w/2,h*.45,0,w/2,h*.45,w*.5);
-  grd.addColorStop(0,`rgba(107,63,160,${.03+Math.sin(t*.3)*.01})`);
-  grd.addColorStop(1,'transparent');
-  cx.fillStyle=grd;cx.fillRect(0,0,w,h);
-
-  cCards.forEach(drawCard);
-}
-
-// ── Continuous floating animation loop ──
-function floatLoop(now){
-  floatT=now*.001;
-  render();
-  floatRAF=requestAnimationFrame(floatLoop);
-}
-floatRAF=requestAnimationFrame(floatLoop);
-
-// ═══════ ANIMATION ═══════
-function animCards(cfgs,dur,done){
-  const s0=cCards.map(c=>({x:c.x,y:c.y,ang:c.ang||0,sc:c.sc||1,a:c.a??1}));
-  const t0=performance.now();
-  let finished=false;
-  (function tick(now){
-    if(finished)return;
-    const el=now-t0;let allD=true;
-    cCards.forEach((c,i)=>{
-      const cf=cfgs[i];if(!cf)return;
-      const lt=Math.max(0,el-(cf.dl||0)),p=Math.min(1,lt/dur),e=easeOut(p);
-      if(p<1)allD=false;
-      const tg=cf.tg;
-      c.x=lerp(s0[i].x,tg.x,e);c.y=lerp(s0[i].y,tg.y,e);
-      c.ang=lerp(s0[i].ang,tg.ang??0,e);c.sc=lerp(s0[i].sc,tg.sc??1,e);c.a=lerp(s0[i].a,tg.a??1,e);
-    });
-    if(!allD)requestAnimationFrame(tick);
-    else{finished=true;if(done)done()}
-  })(t0);
-}
-
-// ═══════ SHUFFLE ═══════
-function startShuffle(){
-  st='shuf';
-  document.getElementById('mainBtn').disabled=true;
-  document.getElementById('stxt').textContent='셔플 중...';
-  deck=shuf(D.map(c=>({...c,reversed:Math.random()<.4})));sel=[];updateDots();
-  const w=cv.clientWidth,h=cv.clientHeight,N=28;
-  cCards=[];for(let i=0;i<N;i++)cCards.push({x:w/2,y:h/2,ang:0,sc:1,a:1,idx:i});
-  render();
-  // scatter
-  animCards(cCards.map((c,i)=>({tg:{x:w/2+(Math.random()-.5)*w*.6,y:h/2+(Math.random()-.5)*h*.45,ang:(Math.random()-.5)*110},dl:i*12})),500,()=>{
-    let cy=0;
-    (function wash(){
-      if(cy>=3){gather();return}
-      animCards(cCards.map((c,i)=>{const a=(cy*120+(i/N)*360+Math.random()*35)*Math.PI/180,rr=40+Math.random()*Math.min(w,h)*.22;return{tg:{x:w/2+Math.cos(a)*rr,y:h/2+Math.sin(a)*rr,ang:(Math.random()-.5)*140},dl:i*4}}),420,()=>{cy++;wash()});
-    })();
-  });
-  function gather(){
-    const w=cv.clientWidth,h=cv.clientHeight;
-    animCards(cCards.map((c,i)=>({tg:{x:w/2+(Math.random()-.5)*25,y:h/2+(Math.random()-.5)*18,ang:(Math.random()-.5)*8},dl:i*6})),350,()=>{
-      animCards(cCards.map((c,i)=>({tg:{x:w/2,y:h/2-i*.7,ang:0},dl:0})),250,()=>{setTimeout(spread,250)});
-    });
-  }
-}
-
-function spread(){
-  st='spread';const w=cv.clientWidth,h=cv.clientHeight,N=cCards.length;
-  const totAng=110,startA=-totAng/2,pivY=h*1.08,rad=Math.min(h*.82,w*.46);
-  animCards(cCards.map((c,i)=>{
-    const ad=startA+(totAng/(N-1))*i,ar=(ad-90)*Math.PI/180;
-    c._fa=ad;c._fx=w/2+Math.cos(ar)*rad;c._fy=pivY+Math.sin(ar)*rad;
-    return{tg:{x:c._fx,y:c._fy,ang:ad,sc:1,a:1},dl:i*18};
-  }),550,()=>{
-    st='sel';
-    document.getElementById('stxt').textContent=SP[curSp].pos[0]+' 카드를 선택하세요';
-    document.getElementById('mainBtn').style.display='none';
-    listen();
-  });
-}
-
-// ═══════ INTERACTION ═══════
-function listen(){cv.addEventListener('pointermove',onMove);cv.addEventListener('pointerdown',onDown)}
-function unlisten(){cv.removeEventListener('pointermove',onMove);cv.removeEventListener('pointerdown',onDown)}
-
-function hit(px,py){
-  for(let i=cCards.length-1;i>=0;i--){
-    const c=cCards[i];if(c.flip||c.dis)continue;
-    // account for floating offset
-    const ph=c.idx*1.7+c.idx*c.idx*.3;
-    const fy=Math.sin(floatT*1.2+ph)*4+Math.sin(floatT*0.7+ph*1.3)*2.5;
-    const fx=Math.cos(floatT*0.8+ph*.9)*1.5;
-    const dx=px-(c.x+fx),dy=py-(c.y+fy),a=-(c.ang||0)*Math.PI/180;
-    const rx=dx*Math.cos(a)-dy*Math.sin(a),ry=dx*Math.sin(a)+dy*Math.cos(a);
-    if(Math.abs(rx)<CW/2+4&&Math.abs(ry)<CH/2+4)return i;
-  }return-1;
-}
-function cpos(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
-
-function onMove(e){
-  if(st!=='sel')return;const{x,y}=cpos(e),h=hit(x,y);
-  cCards.forEach((c,i)=>{
-    if(c.flip||c.dis)return;
-    if(i===h){if(!c.hov){c.hov=true;c._oy=c.y;c.y-=8;c.sc=1.08}}
-    else if(c.hov){c.hov=false;if(c._oy!==undefined){c.y=c._oy;c._oy=undefined}c.sc=1}
-  });
-}
-
-function onDown(e){
-  if(st!=='sel')return;const{x,y}=cpos(e),hi=hit(x,y);if(hi<0)return;
-  const sp=SP[curSp],c=cCards[hi],dc=deck[hi%deck.length];
-  c.flip=true;c.rev=dc.reversed;c.hov=false;if(c._oy!==undefined){c.y=c._oy;c._oy=undefined}c.sc=1.08;
-  loadImg(dc.img).then(img=>{c.fImg=img;render()});
-  sel.push({card:dc,cc:c,pos:sp.pos[sel.length]});updateDots();
-  if(sel.length<sp.cnt){document.getElementById('stxt').textContent=sp.pos[sel.length]+' 카드를 선택하세요'}
-  else{
-    document.getElementById('stxt').textContent='운명을 읽는 중...';
-    cCards.forEach(c=>{if(!c.flip){c.dis=true;c.a=.12}});
-    unlisten();st='done';setTimeout(showRes,1e3);
-  }
-}
-
-// ═══════ RESULT ═══════
-function showRes(){
-  const sp=SP[curSp],ov=document.getElementById('rov'),bd=document.getElementById('rovB');
-  document.getElementById('rovT').textContent='✦ '+sp.name+' 해석 ✦';
-  let h='<div class="rcrow">';
-  sel.forEach(s=>{const rv=s.card.reversed;
-    h+=`<div class="rcm"><img src="${s.card.img}" style="${rv?'transform:rotate(180deg)':''}"><div class="p">${s.pos}</div><div class="n">${s.card.n}</div><div class="d" style="color:${rv?'#e85454':'#7be854'}">${rv?'역방향':'정방향'}</div></div>`;
-  });h+='</div>';
-  const q=document.getElementById('qInput').value.trim(),ak=localStorage.getItem('gemini_api_key');
-  if(!ak){h+=`<div class="aw">⚠️ Gemini API 키가 설정되지 않았습니다.<br><a href="#" onclick="closeR();showPage('settings');return false">설정 페이지</a>에서 API 키를 입력해주세요.</div>`;h+=fallback()}
-  else h+='<div class="ail" id="aiL">AI가 타로를 해석하고 있습니다</div>';
-  bd.innerHTML=h;ov.classList.add('show');
-  if(ak)callAI(ak,q);
-  saveHist(q);
-}
-
-function fallback(){
-  let h='<div class="air">';
-  sel.forEach(s=>{const rv=s.card.reversed;h+=`\n【${s.pos}】 ${s.card.n} (${rv?'역방향':'정방향'})\n${rv?s.card.r:s.card.m}\n`});
-  return h+'</div>';
-}
-
-async function callAI(ak, q) {
-  const sp = SP[curSp];
-  const ci = sel.map(s => {
-    const rv = s.card.reversed;
-    return `- ${s.pos}: ${s.card.n} (${rv ? '역방향' : '정방향'}) — ${rv ? s.card.r : s.card.m}`;
-  }).join('\n');
-
-  const prompt = `당신은 전문 타로 리더입니다. 라이더-웨이트-스미스 덱을 사용한 ${sp.name}(${sp.en}) 스프레드 리딩을 해석해주세요.\n\n${q ? '질문: ' + q + '\n\n' : ''}선택된 카드:\n${ci}\n\n각 카드의 위치별 의미를 상세히 해석하고, 카드들 간의 관계와 전체적인 메시지를 종합해주세요. 한국어로 답변하되 카드 이름은 영문을 병기해주세요. 해석이 너무 길지 않게 요약해서 해주세요.`;
-
-  try {
-    // 🌟 모델명을 gemini-1.5-flash로 변경했습니다.
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${ak}`;
-    
-    const res = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
-
-    // 429 에러(Too Many Requests) 전용 처리
-    if (res.status === 429) {
-      throw new Error("요청 한도를 초과했습니다. 잠시 후(약 1분) 다시 시도해주세요.");
-    }
-
-    if (!res.ok) throw new Error(`API 응답 오류: ${res.status}`);
-
-    const data = await res.json();
-    const txt = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    const el = document.getElementById('aiL');
-    if (el) {
-      if (txt) {
-        // 줄바꿈 유지 및 텍스트 삽입
-        el.outerHTML = '<div class="air">' + txt.replace(/\n/g, '<br>') + '</div>';
-      } else {
-        el.outerHTML = '<div class="aw">⚠️ AI 응답 내용이 없습니다.</div>' + fallback();
-      }
-    }
-
-    // 히스토리 저장
-    const hist = getHist();
-    if (hist.length) {
-      hist[0].ai = txt || '';
-      localStorage.setItem('tarot_hist', JSON.stringify(hist));
-    }
-
-  } catch (e) {
-    const el = document.getElementById('aiL');
-    if (el) {
-      el.outerHTML = `<div class="aw">⚠️ 오류 발생: ${e.message}</div>` + (typeof fallback === 'function' ? fallback() : '');
-    }
-  }
-}
-
-function closeR(){document.getElementById('rov').classList.remove('show')}
-function restart(){closeR();resetT()}
-
-// ═══════ HISTORY ═══════
-function getHist(){try{return JSON.parse(localStorage.getItem('tarot_hist')||'[]')}catch{return[]}}
-function saveHist(q){
-  const h=getHist();
-  h.unshift({dt:new Date().toISOString(),sp:curSp,spN:SP[curSp].name,q:q||'',cards:sel.map(s=>({n:s.card.n,id:s.card.id,pos:s.pos,rev:s.card.reversed,m:s.card.reversed?s.card.r:s.card.m,img:s.card.img})),ai:''});
-  if(h.length>50)h.length=50;localStorage.setItem('tarot_hist',JSON.stringify(h));
-}
-
-function renderHist(){
-  const el=document.getElementById('hList'),h=getHist();
-  if(!h.length){el.innerHTML='<div class="hempty">아직 타로 내역이 없습니다.<br>첫 번째 리딩을 시작해보세요! ✦</div>';return}
-  el.innerHTML=h.map((it,i)=>`<div class="hitem" onclick="viewH(${i})"><div class="htop"><span class="hsp">${it.spN}</span><span class="hdate">${new Date(it.dt).toLocaleDateString('ko')} ${new Date(it.dt).toLocaleTimeString('ko',{hour:'2-digit',minute:'2-digit'})}</span></div><div class="hq">${it.q||'(질문 없음)'}</div><div class="hchips">${it.cards.map(c=>'<span class="hchip">'+c.n+(c.rev?' ↓':'')+'</span>').join('')}</div></div>`).join('');
-}
-
-function viewH(i){
-  const h=getHist(),it=h[i];if(!it)return;
-  const ov=document.getElementById('rov'),bd=document.getElementById('rovB');
-  document.getElementById('rovT').textContent='✦ '+it.spN+' ✦';
-  let html='<div class="rcrow">';
-  it.cards.forEach(c=>{html+=`<div class="rcm"><img src="${c.img}" style="${c.rev?'transform:rotate(180deg)':''}"><div class="p">${c.pos}</div><div class="n">${c.n}</div><div class="d" style="color:${c.rev?'#e85454':'#7be854'}">${c.rev?'역방향':'정방향'}</div></div>`});
-  html+='</div>';
-  if(it.q)html+=`<div style="font-size:.78rem;color:var(--text2);margin:6px 0;font-style:italic">질문: ${it.q}</div>`;
-  if(it.ai)html+='<div class="air">'+it.ai.replace(/\n/g,'<br>')+'</div>';
-  else{html+='<div class="air">';it.cards.forEach(c=>{html+=`\n【${c.pos}】 ${c.n} (${c.rev?'역방향':'정방향'})\n${c.m}\n`});html+='</div>'}
-  bd.innerHTML=html;ov.classList.add('show');
-}
-
-// ═══════ SETTINGS ═══════
-function initSet(){
-  document.getElementById('apiInput').value=localStorage.getItem('gemini_api_key')||'';
-  curSp=localStorage.getItem('tarot_sp')||'three';
-  const g=document.getElementById('spGrid');
-  g.innerHTML=Object.entries(SP).map(([k,v])=>`<div class="spopt${k===curSp?' act':''}" data-s="${k}" onclick="selSp('${k}')"><div class="sn">${v.name}</div><div class="sc">${v.cnt}장</div></div>`).join('');
-  updSpLbl();
-}
-
-function saveKey(){localStorage.setItem('gemini_api_key',document.getElementById('apiInput').value.trim());const m=document.getElementById('keySvd');m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2e3)}
-
-function selSp(k){
-  curSp=k;localStorage.setItem('tarot_sp',k);
-  document.querySelectorAll('.spopt').forEach(e=>e.classList.toggle('act',e.dataset.s===k));
-  updSpLbl();const m=document.getElementById('spSvd');m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2e3);
-  if(st!=='idle')resetT();
-}
-
-function updSpLbl(){document.getElementById('spLabel').textContent=SP[curSp].name+' ('+SP[curSp].cnt+'장)';updateDots()}
-function updateDots(){const sp=SP[curSp],r=document.getElementById('dotRow');r.innerHTML='';for(let i=0;i<sp.cnt;i++){const d=document.createElement('div');d.className='dot';if(i<sel.length)d.classList.add('on');r.appendChild(d)}}
-
-// ═══════ NAV ═══════
-function showPage(n){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('pg-'+n).classList.add('active');
-  document.querySelector('.nav-btn[data-p="'+n+'"]').classList.add('active');
-  if(n==='history')renderHist();
-  if(n==='tarot')resize();
-}
-
-// ═══════ MAIN ═══════
-function onMain(){if(st==='idle')startShuffle()}
-function resetT(){
-  st='idle';unlisten();cCards=[];sel=[];
-  updateDots();
-  document.getElementById('stxt').textContent='카드를 셔플하세요';
-  const btn=document.getElementById('mainBtn');btn.disabled=false;btn.style.display='';
-}
-
-// ═══════ INIT ═══════
-window.addEventListener('resize',()=>{resize()});
-initSet();resize();
-</script>
+  <script src="js/app.js"></script>
 </body>
 </html>
