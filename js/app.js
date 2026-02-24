@@ -149,15 +149,128 @@ function renderIdleCards(t) {
     cx.restore();
   });
 
-  // Central glowing aura
+  // ── Crystal Ball ──
+  const cbR = Math.min(w, h) * 0.13; // ball radius
+  const cbX = centerX, cbY = centerY;
+
+  // Outer glow aura
   const pulse = Math.sin(t * 1.2) * 0.3 + 0.7;
   cx.save();
-  cx.globalAlpha = 0.06 * pulse;
-  const grd2 = cx.createRadialGradient(centerX, centerY, 0, centerX, centerY, w * 0.18);
-  grd2.addColorStop(0, `rgba(212,168,67,${0.08 * pulse})`);
-  grd2.addColorStop(1, 'transparent');
-  cx.fillStyle = grd2;
+  const auraGrd = cx.createRadialGradient(cbX, cbY, cbR * 0.3, cbX, cbY, cbR * 2.5);
+  auraGrd.addColorStop(0, `rgba(140,100,220,${0.06 * pulse})`);
+  auraGrd.addColorStop(0.5, `rgba(212,168,67,${0.03 * pulse})`);
+  auraGrd.addColorStop(1, 'transparent');
+  cx.fillStyle = auraGrd;
   cx.fillRect(0, 0, w, h);
+  cx.restore();
+
+  // Ball base / stand
+  cx.save();
+  cx.beginPath();
+  cx.ellipse(cbX, cbY + cbR * 0.95, cbR * 0.45, cbR * 0.12, 0, 0, Math.PI * 2);
+  cx.fillStyle = 'rgba(80,50,30,0.5)';
+  cx.fill();
+  cx.strokeStyle = 'rgba(212,168,67,0.2)';
+  cx.lineWidth = 1;
+  cx.stroke();
+  cx.restore();
+
+  // Ball body — glass sphere
+  cx.save();
+  cx.beginPath();
+  cx.arc(cbX, cbY, cbR, 0, Math.PI * 2);
+  cx.clip();
+
+  // Dark interior
+  const ballGrd = cx.createRadialGradient(cbX - cbR * 0.2, cbY - cbR * 0.25, 0, cbX, cbY, cbR);
+  ballGrd.addColorStop(0, 'rgba(30,15,50,0.85)');
+  ballGrd.addColorStop(0.6, 'rgba(15,8,30,0.9)');
+  ballGrd.addColorStop(1, 'rgba(5,2,15,0.95)');
+  cx.fillStyle = ballGrd;
+  cx.fillRect(cbX - cbR, cbY - cbR, cbR * 2, cbR * 2);
+
+  // ── Swirling smoke particles inside ──
+  for (let i = 0; i < 18; i++) {
+    const smokeT = t * (0.4 + i * 0.03) + i * 2.7;
+    // Spiral path
+    const spiralR = cbR * (0.15 + (i % 5) * 0.12) * (0.6 + Math.sin(smokeT * 0.5) * 0.4);
+    const sx = cbX + Math.cos(smokeT) * spiralR * (0.7 + Math.sin(i * 1.3 + t * 0.2) * 0.3);
+    const sy = cbY + Math.sin(smokeT * 0.8 + i) * spiralR * 0.6 - Math.sin(t * 0.6 + i * 0.5) * cbR * 0.15;
+    const smokeSize = cbR * (0.08 + Math.sin(smokeT * 1.2 + i * 3) * 0.05);
+    const smokeAlpha = 0.06 + Math.sin(smokeT * 0.7 + i * 1.7) * 0.04;
+
+    // Alternate purple and gold smoke wisps
+    const isGold = i % 3 === 0;
+    const sGrd = cx.createRadialGradient(sx, sy, 0, sx, sy, smokeSize);
+    if (isGold) {
+      sGrd.addColorStop(0, `rgba(212,168,67,${smokeAlpha * 1.5})`);
+      sGrd.addColorStop(1, 'transparent');
+    } else {
+      sGrd.addColorStop(0, `rgba(140,90,200,${smokeAlpha * 1.2})`);
+      sGrd.addColorStop(1, 'transparent');
+    }
+    cx.fillStyle = sGrd;
+    cx.beginPath();
+    cx.arc(sx, sy, smokeSize, 0, Math.PI * 2);
+    cx.fill();
+  }
+
+  // ── Rising smoke tendrils ──
+  for (let i = 0; i < 6; i++) {
+    const tendrilT = t * 0.5 + i * 1.05;
+    const risePhase = (tendrilT % 4) / 4; // 0~1 cycle
+    const tx = cbX + Math.sin(tendrilT * 1.5 + i * 2) * cbR * 0.35;
+    const ty = cbY + cbR * 0.3 - risePhase * cbR * 0.8;
+    const tSize = cbR * (0.04 + risePhase * 0.08);
+    const tAlpha = (1 - risePhase) * 0.1;
+
+    const tGrd = cx.createRadialGradient(tx, ty, 0, tx, ty, tSize);
+    tGrd.addColorStop(0, `rgba(180,140,220,${tAlpha})`);
+    tGrd.addColorStop(1, 'transparent');
+    cx.fillStyle = tGrd;
+    cx.beginPath();
+    cx.arc(tx, ty, tSize, 0, Math.PI * 2);
+    cx.fill();
+  }
+
+  // ── Inner mystical glow (pulsing core) ──
+  const coreGrd = cx.createRadialGradient(cbX, cbY, 0, cbX, cbY, cbR * 0.5);
+  coreGrd.addColorStop(0, `rgba(212,168,67,${0.04 + pulse * 0.03})`);
+  coreGrd.addColorStop(0.5, `rgba(140,80,200,${0.02 + pulse * 0.02})`);
+  coreGrd.addColorStop(1, 'transparent');
+  cx.fillStyle = coreGrd;
+  cx.fillRect(cbX - cbR, cbY - cbR, cbR * 2, cbR * 2);
+
+  cx.restore(); // end clip
+
+  // Glass sphere highlight / reflections (on top, outside clip)
+  cx.save();
+  // Top-left specular highlight
+  const hlGrd = cx.createRadialGradient(
+    cbX - cbR * 0.3, cbY - cbR * 0.35, 0,
+    cbX - cbR * 0.3, cbY - cbR * 0.35, cbR * 0.5
+  );
+  hlGrd.addColorStop(0, 'rgba(255,255,255,0.12)');
+  hlGrd.addColorStop(0.5, 'rgba(255,255,255,0.03)');
+  hlGrd.addColorStop(1, 'transparent');
+  cx.fillStyle = hlGrd;
+  cx.beginPath();
+  cx.arc(cbX, cbY, cbR, 0, Math.PI * 2);
+  cx.fill();
+
+  // Edge rim light
+  cx.beginPath();
+  cx.arc(cbX, cbY, cbR - 0.5, 0, Math.PI * 2);
+  cx.strokeStyle = `rgba(180,160,220,${0.12 + pulse * 0.06})`;
+  cx.lineWidth = 1.5;
+  cx.stroke();
+
+  // Subtle outer ring glow
+  cx.beginPath();
+  cx.arc(cbX, cbY, cbR + 2, 0, Math.PI * 2);
+  cx.strokeStyle = `rgba(212,168,67,${0.06 + pulse * 0.03})`;
+  cx.lineWidth = 1;
+  cx.stroke();
   cx.restore();
 }
 
