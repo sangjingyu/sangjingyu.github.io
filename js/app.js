@@ -496,7 +496,7 @@ ${ci}
 }
 
 function closeResult() { document.getElementById('rov').classList.remove('show'); }
-function restart() { closeResult(); resetTarot(); }
+function restart() { closeResult(); resetTarot(); showPage('tarot'); }
 
 // Also reset when closing result after a completed reading
 function closeResultAndReset() {
