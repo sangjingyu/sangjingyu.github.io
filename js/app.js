@@ -244,7 +244,7 @@ function startShuffle() {
   st = 'shuf';
   document.getElementById('mainBtn').disabled = true;
   document.getElementById('stxt').textContent = '셔플 중...';
-  deck = shuf(D.map(c => ({ ...c, isReversed: Math.random() < .4 })));
+  deck = shuf(D.map(c => ({ ...c, isReversed: Math.random() < .5 })));
   sel = [];
   updateDots();
 
@@ -497,6 +497,12 @@ ${ci}
 
 function closeResult() { document.getElementById('rov').classList.remove('show'); }
 function restart() { closeResult(); resetTarot(); }
+
+// Also reset when closing result after a completed reading
+function closeResultAndReset() {
+  document.getElementById('rov').classList.remove('show');
+  if (st === 'done') resetTarot();
+}
 
 // ═══════ HISTORY ═══════
 function getHistory() {
