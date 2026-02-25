@@ -105,9 +105,21 @@ function renderIdleCards(t) {
     const y = centerY + Math.sin(angle) * ic.ry * 0.5;
     const cardAng = Math.cos(angle) * 12;
     const sc = ic.sc * depthScale;
-    const facing = Math.cos(angle);
-    const showFront = facing > 0.05 && ic.fImg;
-    const flipScaleX = Math.abs(facing) * 0.55 + 0.45;
+    const facing = Math.cos(angle); // -1 (away) to 1 (towards viewer)
+
+    // Smooth horizontal scale: squeeze to thin edge at flip point
+    // Use sine curve for natural easing (not linear abs)
+    const absFacing = Math.abs(facing);
+    const flipScaleX = 0.12 + absFacing * absFacing * 0.88; // ease-in: thin at edge, full when facing
+
+    // Transition zone: blend front/back near the flip point
+    // facing > 0.15 = fully front, facing < -0.15 = fully back, between = crossfade
+    const transitionZone = 0.15;
+    const frontBlend = Math.max(0, Math.min(1, (facing + transitionZone) / (transitionZone * 2)));
+    const hasFront = ic.fImg != null;
+
+    // Skip drawing if card is edge-on (too thin to see)
+    if (flipScaleX < 0.08) return;
 
     cx.save();
     cx.globalAlpha = depthAlpha;
@@ -121,19 +133,37 @@ function renderIdleCards(t) {
     cx.shadowBlur = 10 + (z + 1) * 8;
     cx.shadowOffsetY = 5 + (z + 1) * 5;
 
-    if (showFront) {
+    if (hasFront && frontBlend > 0.01) {
+      // Draw front face
+      cx.save();
+      cx.globalAlpha = depthAlpha * frontBlend;
       cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.clip();
-      // Enable image smoothing for clarity
       cx.imageSmoothingEnabled = true;
       cx.imageSmoothingQuality = 'high';
       cx.drawImage(ic.fImg, -CW / 2, -CH / 2, CW, CH);
-      // Gold border — stronger on front-facing cards
+      // Gold border
       cx.shadowColor = 'transparent';
-      cx.strokeStyle = `rgba(212,168,67,${0.25 + facing * 0.35})`;
+      cx.strokeStyle = `rgba(212,168,67,${(0.25 + facing * 0.35) * frontBlend})`;
       cx.lineWidth = 2;
       cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.stroke();
-    } else {
+      cx.restore();
+    }
+
+    if (frontBlend < 0.99) {
+      // Draw back face
+      cx.save();
+      cx.globalAlpha = depthAlpha * (1 - frontBlend);
       cx.drawImage(backCv, -CW / 2, -CH / 2, CW, CH);
+      cx.restore();
+    }
+
+    // Bright edge flash at the flip moment (when card is thin)
+    if (absFacing < 0.2) {
+      const edgeFlash = 1 - absFacing / 0.2; // 1 at dead center, 0 at edges
+      cx.shadowColor = 'transparent';
+      cx.strokeStyle = `rgba(240,210,120,${edgeFlash * 0.25})`;
+      cx.lineWidth = 2;
+      cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.stroke();
     }
 
     // Glow on nearest cards
@@ -453,6 +483,20 @@ function drawCard(c) {
   cx.shadowOffsetY = shadowD;
 
   if (c.flip && c.fImg) {
+    // Glowing shadow beneath selected card
+    if (c.selected && st === 'sel') {
+      cx.save();
+      cx.shadowColor = 'transparent';
+      const glowPulse = 0.7 + Math.sin(t * 2 + ph) * 0.3;
+      const grd = cx.createRadialGradient(0, CH / 2 + 8, 0, 0, CH / 2 + 8, CW * 0.6);
+      grd.addColorStop(0, `rgba(212,168,67,${0.18 * glowPulse})`);
+      grd.addColorStop(0.5, `rgba(212,168,67,${0.06 * glowPulse})`);
+      grd.addColorStop(1, 'transparent');
+      cx.fillStyle = grd;
+      cx.fillRect(-CW * 0.6, CH / 2 - 4, CW * 1.2, CW * 0.5);
+      cx.restore();
+    }
+
     cx.beginPath(); cx.roundRect(-CW / 2, -CH / 2, CW, CH, 5); cx.clip();
     if (c.rev) {
       cx.save(); cx.rotate(Math.PI);
@@ -697,8 +741,23 @@ function onDown(e) {
   c.flip = true;
   c.rev = dc.isReversed;
   c.hov = false;
+  c.selected = true; // mark as selected for glow rendering
   if (c._oy !== undefined) { c.y = c._oy; c._oy = undefined; }
-  c.sc = 1.08;
+
+  // Animate the selected card rising up
+  const riseTarget = c.y - 18;
+  const riseSc = 1.15;
+  const riseStart = performance.now();
+  const riseDur = 350;
+  const origY = c.y;
+  const origSc = c.sc || 1;
+  (function riseAnim(now) {
+    const p = Math.min(1, (now - riseStart) / riseDur);
+    const e = 1 - Math.pow(1 - p, 3); // easeOut
+    c.y = lerp(origY, riseTarget, e);
+    c.sc = lerp(origSc, riseSc, e);
+    if (p < 1) requestAnimationFrame(riseAnim);
+  })(riseStart);
 
   loadImg(dc.img).then(img => { c.fImg = img; });
 
@@ -727,7 +786,7 @@ function calcRevealLayout(w, h, count) {
   // Card scale — fit within canvas with margin
   const hMargin = 16;
   const vMargin = 8;
-  const labelH = 36; // space for labels below each card
+  const labelH = 52; // space for labels below each card (matches .75rem/.8rem/.7rem)
   const availW = w - hMargin * 2;
   const availH = h - vMargin * 2;
 
@@ -735,7 +794,7 @@ function calcRevealLayout(w, h, count) {
   const gapRatio = 0.15; // gap as fraction of card width
   const scW = availW / (perRow * CW * (1 + gapRatio) - CW * gapRatio);
   // Scale to fit cards + labels vertically
-  const scH = availH / (rows * (CH + labelH) + (rows - 1) * 8);
+  const scH = availH / (rows * (CH + labelH) + (rows - 1) * 28);
   const sc = Math.max(0.5, Math.min(1.6, Math.min(scW, scH)));
 
   const cardW = CW * sc;
@@ -744,7 +803,8 @@ function calcRevealLayout(w, h, count) {
   const rowH = cardH + labelH;
 
   // Total height of all rows
-  const totalH = rows * rowH + (rows - 1) * 6;
+  const rowGap = rows > 1 ? 28 : 0;
+  const totalH = rows * rowH + (rows - 1) * rowGap;
   const topY = (h - totalH) / 2 + cardH / 2 + vMargin / 2;
 
   const positions = [];
@@ -754,7 +814,7 @@ function calcRevealLayout(w, h, count) {
     if (rowCount <= 0) break;
     const rowW = rowCount * cardW + (rowCount - 1) * gap;
     const rowStartX = (w - rowW) / 2 + cardW / 2;
-    const rowY = topY + r * (rowH + 6);
+    const rowY = topY + r * (rowH + rowGap);
 
     for (let c = 0; c < rowCount; c++) {
       // Subtle fan tilt
@@ -783,6 +843,11 @@ function revealSelectedCards() {
   document.getElementById('ctrlArea').style.display = 'none';
   document.querySelector('#pg-tarot .hdr').style.display = 'none';
   document.querySelector('#pg-tarot .qarea').style.display = 'none';
+
+  // Enable scrollable reveal mode
+  const tarotPage = document.getElementById('pg-tarot');
+  tarotPage.classList.add('reveal-mode');
+  tarotPage.scrollTop = 0;
 
   const panel = document.getElementById('resultPanel');
   panel.classList.add('show');
@@ -887,19 +952,22 @@ async function callGeminiAI(ak, q) {
     return `- ${s.pos}: ${s.card.name} (${rv ? '역방향' : '정방향'}) — ${rv ? s.card.reversed : s.card.meaning}`;
   }).join('\n');
 
-  const prompt = `You are a professional tarot reader. Please interpret the ${sp.name} (${sp.nameEn}) spread using the Rider-Waite-Smith deck.
+  const prompt = `You are a professional tarot reader. Provide a concise interpretation of a ${sp.name}(${sp.nameEn}) spread reading using the Rider-Waite-Smith deck.
 
 ${q ? 'Question: ' + q + '\n\n' : ''}Selected cards:
 ${ci}
 
-Provide a detailed interpretation of each card according to its position in the spread. 
-Then synthesize the relationships between the cards and deliver an overall message.
+Please respond in the following format, keeping it concise:
+1. A 1-2 sentence core interpretation for each card in its position
+2. A 3-4 sentence synthesis of the relationships between the cards and the overall message
+3. A 1-2 sentence key advice to conclude
 
-Respond in Korean, but include the card names in English as well.`;
+No unnecessary introductions or repetition — deliver only the essential insights.
+Respond in Korean, but include the English card names alongside.`;
 
   try {
     const res = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + ak,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + ak,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -954,6 +1022,8 @@ function closeResultPanel() {
   document.getElementById('resultPanel').classList.remove('show');
   document.getElementById('rpBody').innerHTML = '';
   document.getElementById('ctrlArea').style.display = '';
+  // Exit reveal scroll mode
+  document.getElementById('pg-tarot').classList.remove('reveal-mode');
   // Restore header & question
   const hdr = document.querySelector('#pg-tarot .hdr');
   if (hdr) hdr.style.display = '';
@@ -962,6 +1032,8 @@ function closeResultPanel() {
   // Remove canvas labels
   const lbls = document.getElementById('canvasLabels');
   if (lbls) lbls.remove();
+  // Scroll back to top
+  document.getElementById('pg-tarot').scrollTop = 0;
 }
 
 // Also reset when closing result after a completed reading
@@ -1021,15 +1093,24 @@ function renderHistory() {
     return;
   }
   el.innerHTML = h.map((it, i) => `
-    <div class="hitem" onclick="viewHistory(${i})">
+    <div class="hitem">
       <div class="htop">
         <span class="hsp">${it.spN}</span>
         <span class="hdate">${new Date(it.dt).toLocaleDateString('ko')} ${new Date(it.dt).toLocaleTimeString('ko', { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
-      <div class="hq">${it.q || '(질문 없음)'}</div>
-      <div class="hchips">${it.cards.map(c => '<span class="hchip">' + c.name + (c.rev ? ' ↓' : '') + '</span>').join('')}</div>
+      <div class="hq" onclick="viewHistory(${i})">${it.q || '(질문 없음)'}</div>
+      <div class="hchips" onclick="viewHistory(${i})">${it.cards.map(c => '<span class="hchip">' + c.name + (c.rev ? ' ↓' : '') + '</span>').join('')}</div>
+      <div class="hdel-row"><button class="hdel-btn" onclick="deleteHistory(${i})">삭제</button></div>
     </div>
   `).join('');
+}
+
+function deleteHistory(i) {
+  const h = getHistory();
+  if (i < 0 || i >= h.length) return;
+  h.splice(i, 1);
+  localStorage.setItem('tarot_hist', JSON.stringify(h));
+  renderHistory();
 }
 
 function viewHistory(i) {

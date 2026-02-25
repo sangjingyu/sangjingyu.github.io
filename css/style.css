@@ -102,6 +102,39 @@ body {
   display: flex;
 }
 
+/* When in reveal mode, the tarot page becomes scrollable */
+.page.reveal-mode {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.page.reveal-mode #canvasWrap {
+  flex: none;
+  height: 45vh;
+  min-height: 220px;
+}
+
+.page.reveal-mode .result-panel {
+  flex: none;
+  max-height: none;
+  min-height: 0;
+  overflow: visible;
+  margin-top: 52px;
+}
+
+.page.reveal-mode .rp-body {
+  overflow-y: visible;
+  flex: none;
+}
+
+.page.reveal-mode .rp-footer {
+  position: sticky;
+  bottom: 0;
+  background: rgba(10, 6, 18, .95);
+  backdrop-filter: blur(12px);
+  z-index: 2;
+}
+
 .page-scroll {
   flex: 1;
   overflow-y: auto;
@@ -549,6 +582,29 @@ body {
   white-space: nowrap;
 }
 
+.hdel-row {
+  text-align: right;
+  margin-top: 6px;
+}
+
+.hdel-btn {
+  font-family: inherit;
+  font-size: .65rem;
+  color: var(--text2);
+  background: rgba(200, 60, 60, .08);
+  border: 1px solid rgba(200, 60, 60, .2);
+  border-radius: 5px;
+  padding: 3px 12px;
+  cursor: pointer;
+  transition: all .3s;
+}
+
+.hdel-btn:hover {
+  background: rgba(200, 60, 60, .2);
+  border-color: rgba(200, 60, 60, .4);
+  color: #e88;
+}
+
 /* ══════ Result Panel (inline in tarot page) ══════ */
 .result-panel {
   display: none;
@@ -588,7 +644,7 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .clbl {
@@ -601,23 +657,23 @@ body {
 
 .clbl .clbl-pos {
   font-family: 'Cinzel', serif;
-  font-size: clamp(.4rem, 1.2vw, .75rem);
+  font-size: .75rem;
   color: var(--gold);
   letter-spacing: .06em;
-  text-shadow: 0 1px 4px rgba(0,0,0,.8);
+  text-shadow: 0 1px 6px rgba(0,0,0,.9);
 }
 
 .clbl .clbl-name {
-  font-size: clamp(.36rem, 1.1vw, .8rem);
+  font-size: .8rem;
   color: var(--gold-l);
-  text-shadow: 0 1px 4px rgba(0,0,0,.8);
-  margin-top: 1px;
+  text-shadow: 0 1px 6px rgba(0,0,0,.9);
+  margin-top: 3px;
 }
 
 .clbl .clbl-dir {
-  font-size: clamp(.34rem, 1vw, .7rem);
-  margin-top: 1px;
-  text-shadow: 0 1px 4px rgba(0,0,0,.8);
+  font-size: .7rem;
+  margin-top: 3px;
+  text-shadow: 0 1px 6px rgba(0,0,0,.9);
 }
 
 /* ══════ Responsive ══════ */
