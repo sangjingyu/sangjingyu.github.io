@@ -58,7 +58,6 @@ const IDLE_COUNT = 18;
 function startIdleAnimation() {
   if (st !== 'idle') return;
   if (D.length === 0) return;
-  const w = cv.clientWidth, h = cv.clientHeight;
 
   const picked = shuf(D).slice(0, IDLE_COUNT);
 
@@ -68,8 +67,8 @@ function startIdleAnimation() {
       idx: i,
       baseAngle: (i / IDLE_COUNT) * Math.PI * 2,
       orbitSpeed: 0.2 + (i % 4) * 0.03,
-      rx: w * (0.22 + (i % 3) * 0.07),
-      ry: h * (0.14 + (i % 3) * 0.025),
+      rxRatio: 0.22 + (i % 3) * 0.07,  // fraction of canvas width
+      ryRatio: 0.14 + (i % 3) * 0.025,  // fraction of canvas height
       sc: 0.55 + (i % 3) * 0.08,
       cardData: picked[i],
       fImg: null
@@ -101,8 +100,11 @@ function renderIdleCards(t) {
   function drawIdleCard({ ic, angle, z }) {
     const depthScale = 0.75 + (z + 1) * 0.2;
     const depthAlpha = 0.2 + (z + 1) * 0.35;
-    const x = centerX + Math.cos(angle) * ic.rx;
-    const y = centerY + Math.sin(angle) * ic.ry * 0.5;
+    // Compute orbit radius from current canvas size
+    const rx = w * ic.rxRatio;
+    const ry = h * ic.ryRatio;
+    const x = centerX + Math.cos(angle) * rx;
+    const y = centerY + Math.sin(angle) * ry * 0.5;
     const cardAng = Math.cos(angle) * 12;
     const sc = ic.sc * depthScale;
     const facing = Math.cos(angle); // -1 (away) to 1 (towards viewer)
@@ -947,23 +949,28 @@ function buildFallback() {
 
 async function callGeminiAI(ak, q) {
   const sp = SP[curSp];
+  // Compact card info: position | name | direction
   const ci = sel.map(s => {
     const rv = s.card.isReversed;
-    return `- ${s.pos}: ${s.card.name} (${rv ? '역방향' : '정방향'}) — ${rv ? s.card.reversed : s.card.meaning}`;
+    return `${s.pos}|${s.card.name}|${rv ? 'R' : 'U'}`;
   }).join('\n');
 
-  const prompt = `You are a professional tarot reader. Provide a concise interpretation of a ${sp.name}(${sp.nameEn}) spread reading using the Rider-Waite-Smith deck.
-
-${q ? 'Question: ' + q + '\n\n' : ''}Selected cards:
+  const prompt = `Tarot reader. ${sp.nameEn} spread. RWS deck.${q ? ' Q: ' + q : ''}
+Cards (position|name|U=upright/R=reversed):
 ${ci}
 
-Please respond in the following format, keeping it concise:
-1. A 1-2 sentence core interpretation for each card in its position
-2. A 3-4 sentence synthesis of the relationships between the cards and the overall message
-3. A 1-2 sentence key advice to conclude
+Reply in Korean (card names in English). Use this exact format:
 
-No unnecessary introductions or repetition — deliver only the essential insights.
-Respond in Korean, but include the English card names alongside.`;
+🃏 [Position]: [Card Name] (정방향/역방향)
+→ [1 sentence interpretation]
+
+(repeat for each card)
+
+🔮 종합
+[5-6 sentences: card relationships + overall message]
+
+💡 조언
+[3 sentence actionable advice]`;
 
   try {
     const res = await fetch(
@@ -979,12 +986,11 @@ Respond in Korean, but include the English card names alongside.`;
     const el = document.getElementById('aiL');
     if (el) {
       if (txt) {
-        el.outerHTML = '<div class="air">' + txt.replace(/\n/g, '<br>') + '</div>';
+        el.outerHTML = '<div class="air">' + formatAIResponse(txt) + '</div>';
       } else {
         el.outerHTML = '<div class="aw">⚠️ AI 응답 오류. API 키를 확인해주세요.</div>' + buildFallback();
       }
     }
-    // update history with AI response
     const hist = getHistory();
     if (hist.length) { hist[0].ai = txt || ''; }
     localStorage.setItem('tarot_hist', JSON.stringify(hist));
@@ -994,6 +1000,15 @@ Respond in Korean, but include the English card names alongside.`;
       el.outerHTML = '<div class="aw">⚠️ 연결 오류: ' + e.message + '</div>' + buildFallback();
     }
   }
+}
+
+function formatAIResponse(txt) {
+  return txt
+    .replace(/\n/g, '<br>')
+    .replace(/🃏/g, '<span class="ai-icon">🃏</span>')
+    .replace(/🔮/g, '<br><span class="ai-section">🔮</span>')
+    .replace(/💡/g, '<br><span class="ai-section">💡</span>')
+    .replace(/→/g, '<span class="ai-arrow">→</span>');
 }
 
 function closeResult() { document.getElementById('rov').classList.remove('show'); }
@@ -1134,7 +1149,7 @@ function viewHistory(i) {
   html += '</div>';
   if (it.q) html += `<div style="font-size:.78rem;color:var(--text2);margin:6px 0;font-style:italic">질문: ${it.q}</div>`;
   if (it.ai) {
-    html += '<div class="air">' + it.ai.replace(/\n/g, '<br>') + '</div>';
+    html += '<div class="air">' + formatAIResponse(it.ai) + '</div>';
   } else {
     html += '<div class="air">';
     it.cards.forEach(c => { html += `\n【${c.pos}】 ${c.name} (${c.rev ? '역방향' : '정방향'})\n${c.m}\n`; });

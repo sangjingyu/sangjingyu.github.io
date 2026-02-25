@@ -382,6 +382,23 @@ body {
   white-space: pre-wrap;
 }
 
+.ai-icon {
+  font-size: 1rem;
+  margin-right: 2px;
+}
+
+.ai-section {
+  font-size: 1.1rem;
+  display: inline-block;
+  margin-top: 4px;
+  margin-right: 2px;
+}
+
+.ai-arrow {
+  color: var(--gold);
+  margin: 0 2px;
+}
+
 .ail {
   text-align: center;
   padding: 28px;
