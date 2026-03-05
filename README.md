@@ -1,5 +1,7 @@
 # ✦ Mystic Tarot ✦
 
+데모 : https://sangjingyu.github.io/mysticTarot/
+
 인터랙티브 타로카드 리딩 웹 애플리케이션
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
